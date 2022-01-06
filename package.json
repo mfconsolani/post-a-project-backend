@@ -1,6 +1,8 @@
 {
   "dependencies": {
-    "express": "^4.17.2"
+    "@prisma/client": "^3.7.0",
+    "express": "^4.17.2",
+    "prisma": "^3.7.0"
   },
   "name": "post-a-project-backend",
   "description": "Post a Project backend application using express",
