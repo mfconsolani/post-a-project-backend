@@ -26,12 +26,12 @@ model Post {
 
 model Roles {
   id  Int @id @default(autoincrement())
-  role String
+  role String @unique
   roleInPost Post[]
 }
 
 model Skills {
   id  Int @id @default(autoincrement())
-  skill String
+  skill String @unique
   skillInPost Post[]
 }
