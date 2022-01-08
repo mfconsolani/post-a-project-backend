@@ -21,6 +21,7 @@ model Post {
   createdAt DateTime @default(now())
   expiresBy DateTime
   likesCount Int
+  location  String
 }
 
 model Roles {
