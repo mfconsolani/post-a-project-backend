@@ -5,7 +5,7 @@ const prisma = new PrismaClient()
 async function main() {
     console.log(`Start seeding ...`)
     for (let i = 0; i < 10; i++) {
-        const user = await prisma.post.create({
+        const user = await prisma.project.create({
             data: {
                 title: faker.lorem.sentence(),
                 company: faker.company.companyName(),
@@ -16,7 +16,7 @@ async function main() {
                 skill: {
                     create: { skill: faker.lorem.word() }
                 },
-                duration: faker.datatype.number(40) + "days",
+                duration: faker.datatype.number(40) + " days",
                 expiresBy: faker.date.future(),
                 likesCount: faker.datatype.number(),
                 location: faker.address.country()

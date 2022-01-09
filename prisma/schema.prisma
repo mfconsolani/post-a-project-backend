@@ -10,7 +10,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Post {
+model Project {
   id  Int @id @default(autoincrement())
   title String
   company String
@@ -27,11 +27,11 @@ model Post {
 model Roles {
   id  Int @id @default(autoincrement())
   role String @unique
-  roleInPost Post[]
+  roleInPost Project[]
 }
 
 model Skills {
   id  Int @id @default(autoincrement())
   skill String @unique
-  skillInPost Post[]
+  skillInPost Project[]
 }

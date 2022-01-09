@@ -1,8 +1,12 @@
 {
   "dependencies": {
     "@prisma/client": "^3.7.0",
+    "@types/morgan": "^1.9.3",
+    "@types/winston": "^2.4.4",
     "express": "^4.17.2",
-    "prisma": "^3.7.0"
+    "morgan": "^1.10.0",
+    "prisma": "^3.7.0",
+    "winston": "^3.3.3"
   },
   "name": "post-a-project-backend",
   "description": "Post a Project backend application using express",
@@ -10,7 +14,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "ts-node-dev ./src/app.ts",
+    "start": "NODE_ENV=production node ./dist/app.js",
+    "dev": "NODE_ENV=development ts-node-dev ./src/app.ts",
     "build": "tsc -p ."
   },
   "repository": {
