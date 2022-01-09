@@ -14,12 +14,6 @@ projectRouter.get('/', async (req:Request, res:Response) => {
 
 projectRouter.post('/', async (req:Request, res:Response) => {   
     try {
-        console.log('inside try')
-        // const postSkill = await prisma.skills.create({
-        //     data: {
-        //         skill: "Go0"
-        //     }
-        // })
         const postProject = await prisma.project.create({
             data: {
                 title: "sda",
@@ -37,7 +31,6 @@ projectRouter.post('/', async (req:Request, res:Response) => {
                 location: "Arg"
             }
         })
-        // console.log(postProject, postSkill)
         res.status(200).send(postProject)
     } catch (error) {
         console.log('inside catch', error)
