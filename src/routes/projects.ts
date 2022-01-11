@@ -1,13 +1,7 @@
-import { PrismaClientKnownRequestError,
-    PrismaClientUnknownRequestError,
-    PrismaClientRustPanicError,
-    PrismaClientInitializationError,
-    PrismaClientValidationError
- } from '@prisma/client/runtime';
 import { Router, Request, Response } from 'express';
 import { prisma } from '../db/prismaGlobal';
 import Logger from '../middlewares/winstonLoggerMiddleware';
-// import {prismaClientErrorType } from '../db/prismaErrorLogger';
+import {prismaClientErrorType } from '../db/prismaErrorLogger';
 
 
 export const projectRouter = Router()
@@ -42,10 +36,9 @@ projectRouter.post('/', async (req:Request, res:Response) => {
         })
         res.status(200).send(postProject)
     } catch (error) {
-        // let isPrismaError = prismaClientErrorType(error)
-        if (error instanceof PrismaClientValidationError) {
-            res.status(404).send(Logger.error("hola"))
-        }
+        let isPrismaError = prismaClientErrorType(error)
+        Logger.error(error)
+        res.status(404).send({success: false, error: isPrismaError || error})
     } 
 });
 
