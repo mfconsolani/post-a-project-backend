@@ -16,13 +16,7 @@ projectRouter.get('/', async (req: Request, res: Response) => {
 projectRouter.get('/:id', async (req: Request, res: Response) => {
     const { id } = req.params;
     try {
-        const findOneProject = await prisma.project.findUnique(
-            {
-                where: {
-                    id: parseInt(id)
-                }
-            }
-        )
+        const findOneProject = await prisma.project.findUnique({where:{id:parseInt(id)}})
         res.status(200).send({ success: true, response: findOneProject })
     } catch (error) {
         const isPrismaError = logPrismaError(error)
@@ -53,4 +47,28 @@ projectRouter.post('/', async (req: Request, res: Response) => {
     }
 });
 
-
+projectRouter.put('/:id', async (req: Request, res: Response) => {
+    const { title, company, body, role, skill, duration, expiresBy, likesCount, location } = req.body
+    try {
+        const postProject = await prisma.project.update({
+            where: {
+                id: parseInt(req.params.id)
+            },
+            data: {
+                title: title || undefined,
+                company: company || undefined,
+                body: body || undefined,
+                role: { connect: { role } } || undefined,
+                skill: { connect: { skill } } || undefined,
+                duration: duration || undefined,
+                expiresBy: expiresBy|| undefined,
+                likesCount: likesCount || undefined,
+                location: location || undefined
+            }
+        })
+        res.status(200).send({success: true, postProject})
+    } catch (error: any) {
+        const isPrismaError = logPrismaError(error)
+        res.status(404).send({ success: false, error: isPrismaError || error })
+    }
+});
