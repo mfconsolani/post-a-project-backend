@@ -3,9 +3,6 @@ import { prisma, logPrismaError } from '../db';
 import isNewData from '../helpers/isNewData';
 import Logger from '../middlewares/winstonLoggerMiddleware';
 
-//TODO
-//Isolate the isUpdateRequired function to be a helper and enable to be used globally in the app.
-//Create gist with isUpdatedRequired function snippet
 export const projectRouter = Router()
 
 projectRouter.get('/', async (req: Request, res: Response) => {
@@ -52,7 +49,7 @@ projectRouter.post('/', async (req: Request, res: Response) => {
                 location
             }
         })
-        res.status(200).send({ success: true, postProject })
+        res.status(201).send({ success: true, postProject })
     } catch (error: any) {
         const isPrismaError = logPrismaError(error)
         res.status(404).send({ success: false, error: isPrismaError || error })
@@ -65,7 +62,6 @@ projectRouter.put('/:id', async (req: Request, res: Response) => {
     try {
         const isUpdatedRequired = await isNewData(req)
         if (!isUpdatedRequired.isNewData){
-            console.log(isUpdatedRequired)
             return res.status(200).send("Data is not new")
         } else {
             const postProject = await prisma.project.update({
@@ -84,11 +80,10 @@ projectRouter.put('/:id', async (req: Request, res: Response) => {
                     location: location || undefined
                 }
             })
-            res.status(200).send({ success: true, postProject })
+            res.status(201).send({ success: true, postProject })
         }
     } catch (error: any) {
         const isPrismaError = logPrismaError(error)
-        console.log(error)
         res.status(404).send({ success: false, error: isPrismaError || error })
     }
 });
