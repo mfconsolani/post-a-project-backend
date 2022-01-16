@@ -94,6 +94,23 @@ projectRouter.put('/:id', async (req: Request, res: Response) => {
     console.log("Values from DB", valuesToCompare)
     console.log("Values from request", requestFields)
 
+    const isUpdateRequired = () => {
+        const newValues = {}
+        requestFields.map((elem, i) => {
+
+            if (elem[1] !== valuesToCompare[i][1]){
+                console.log("New value --> ", elem[1] + "  |----|  " + "Old value --> " + valuesToCompare[i][1] )
+                Object.assign(newValues, {[elem[0]]: elem[1]})
+            } else {
+                return false
+            }
+
+        })
+        console.log(newValues)
+        return newValues ? newValues : false
+    }
+
+    isUpdateRequired()
 
     res.send("hola")
     // console.log(isUpdateRequired())
