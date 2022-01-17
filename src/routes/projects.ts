@@ -5,7 +5,7 @@ import Logger from '../middlewares/winstonLoggerMiddleware';
 
 export const projectRouter = Router()
 
-projectRouter.get('/', async (req: Request, res: Response) => {
+projectRouter.get('/', async (_req: Request, res: Response) => {
     try {
         const findAllProjects = await prisma.project.findMany()
         res.status(200).send({ success: true, response: findAllProjects })
