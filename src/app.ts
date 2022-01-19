@@ -1,6 +1,10 @@
 import express, { Request, Response } from 'express';
 import morganMiddleware from './middlewares/morganMiddleware';
 import { projectRouter } from './routes/projects';
+// import 'dotenv/config'
+
+// require('dotenv').config()
+
 const app = express()
 
 app.use(express.json())
