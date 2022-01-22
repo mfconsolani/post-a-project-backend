@@ -1,4 +1,4 @@
-import e, { Router, Request, Response } from "express";
+import { Router, Request, Response } from "express";
 import passport from "passport";
 import { createNewUser, doesUserExists } from "../authentication/authHelpers";
 import Logger from "../middlewares/winstonLoggerMiddleware";
@@ -6,13 +6,14 @@ import Logger from "../middlewares/winstonLoggerMiddleware";
 const authRouter = Router()
 
 authRouter.post('/login',
-    passport.authenticate('signin',
+    passport.authenticate('local',
     {
         failureRedirect: '/',
         failureFlash: true,
         failureMessage: "Error when trying to log in",
         successFlash: true,
-        successMessage: "Logged in succesfully"
+        successMessage: "Logged in succesfully",
+        session: false
     }))
 
 authRouter.post('/signup', async (req: Request, res: Response) => {

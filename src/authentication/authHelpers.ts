@@ -1,5 +1,5 @@
 import bcrypt from 'bcrypt'
-import { prisma, logPrismaError } from '../db';
+import { prisma } from '../db';
 import Logger from '../middlewares/winstonLoggerMiddleware';
 
 export const doesUserExists = async (email: string) => {
@@ -16,7 +16,7 @@ export const doesUserExists = async (email: string) => {
     }
 }
 
-export const astonHasher = (password: string):string => {
+export const astonHasher = (password: string): string => {
     return bcrypt.hashSync(password, 12)
 }
 
@@ -33,18 +33,17 @@ export const createNewUser = async (email: string, password: string, username?: 
     try {
         const user = await prisma.user.create({
             data: {
-              email: email,
-              username: username,
-              password: astonHasher(password)
+                email: email,
+                username: username,
+                password: astonHasher(password)
             }, select: {
                 email: true,
                 id: true,
                 username: (username ? true : undefined)
             }
-          })
+        })
         return user
-
-    } catch (err:any){
+    } catch (err: any) {
         return err
     }
 

@@ -9,11 +9,11 @@ dotenv.config()
 // require('dotenv').config()
 
 const app = express()
-
+// app.use(session());
 app.use(express.json())
 app.use(morganMiddleware)
 app.use(passport.initialize());
-// app.use(passport.session());
+app.use(passport.session());
 
 app.use('/api/projects', projectRouter)
 app.use('/api/auth', authRouter)

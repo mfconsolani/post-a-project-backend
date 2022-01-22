@@ -6,7 +6,8 @@ import { doesUserExists, isValidPassword } from "./authHelpers";
 
 const LocalStrategy = passportLocal.Strategy
 
-passport.use(new LocalStrategy(async (username, password, done) => {
+passport.use('local', 
+    new LocalStrategy(async (username, password, done) => {
 
     try {
         const user = await doesUserExists(username)
