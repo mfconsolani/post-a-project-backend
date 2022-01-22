@@ -1,9 +1,8 @@
 import { Router, Request, Response } from 'express';
 import { prisma, logPrismaError } from '../db';
 import isNewData from '../helpers/isNewData';
-import Logger from '../middlewares/winstonLoggerMiddleware';
 
-export const projectRouter = Router()
+const projectRouter = Router()
 
 projectRouter.get('/', async (_req: Request, res: Response) => {
     try {
@@ -87,3 +86,6 @@ projectRouter.put('/:id', async (req: Request, res: Response) => {
         res.status(404).send({ success: false, error: isPrismaError || error })
     }
 });
+
+
+export default projectRouter;

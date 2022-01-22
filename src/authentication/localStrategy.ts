@@ -1,16 +1,15 @@
 import passport from "passport";
 import * as passportLocal from 'passport-local'
 import { error } from "winston";
-import { prisma, logPrismaError } from '../db';
 import Logger from "../middlewares/winstonLoggerMiddleware";
-import { userData, isValidPassword } from "./authHelpers";
+import { doesUserExists, isValidPassword } from "./authHelpers";
 
 const LocalStrategy = passportLocal.Strategy
 
 passport.use(new LocalStrategy(async (username, password, done) => {
 
     try {
-        const user = await userData(username)
+        const user = await doesUserExists(username)
         const validPassword = await isValidPassword(password, user.password)
         if (error) {
             Logger.error(error)
