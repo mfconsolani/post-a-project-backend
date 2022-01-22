@@ -1,30 +1,30 @@
 import bcrypt from 'bcrypt'
 import { prisma, logPrismaError } from '../db';
 
-const hashedPassword = async (email:string) => {
-    const hash = await prisma.user.findUnique({
-        where: {
-            email: email
-        }, select: {
-            password:true
-        }
-    })
+export const userData = async (email:string) => {
+    try {
+        const user = await prisma.user.findUnique({
+            where: {
+                email: email
+            }})
+        return user
+    } catch (err:any) {
+        return err
+    }
 }
 
-const salt = process.env.SALT_ROUNDS
-
-export const passwordHasher = async (password:string) => {
+export const astonHasher = async (password:string) => {
     try {
-        return await bcrypt.hash(password, 10)
+        return await bcrypt.hash(password, 12)
     } catch (err) {
         return err
     }
 }
 
 
-export const isValidPassword = async (password: string, hash: string) => {
+export const isValidPassword = async (password: string, userPassword: string) => {
     try {
-        return await bcrypt.compare(password, hash)
+        return await bcrypt.compare(password, userPassword)
     } catch (err) {
         return err
     }

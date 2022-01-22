@@ -2,29 +2,29 @@ import passport from "passport";
 import * as passportLocal from 'passport-local'
 import { error } from "winston";
 import { prisma, logPrismaError } from '../db';
-
-//TODO
-//Create isValidPassword
-//Install bcrypt and create compare and hash functions
+import Logger from "../middlewares/winstonLoggerMiddleware";
+import { userData, isValidPassword } from "./authHelpers";
 
 const LocalStrategy = passportLocal.Strategy
 
 passport.use(new LocalStrategy(async (username, password, done) => {
-    const user = await prisma.user.findUnique({
-        where: {
-            username: username
-        }
-    })
-    if (error){
-        logPrismaError(error)
-        return done(error)
-    }
-    if (!user){
-        return done(null, false, {message: "Invalid username or non existant"})
-    }
-    if (!password.isValidPassword(password)){
-        return done(null, false, {message: "Invalid password"})
-    }
 
-    return done(null, user)
+    try {
+        const user = await userData(username)
+        const validPassword = await isValidPassword(password, user.password)
+        if (error) {
+            Logger.error(error)
+            return done(error)
+        }
+        if (!user) {
+            return done(null, false, { message: "Invalid username or non existant" })
+        }
+        if (!validPassword) {
+            return done(null, false, { message: "Invalid password" })
+        }
+        return done(null, { userId: user.id, userName: user.username, userEmail: user.email })
+    } catch (err: any) {
+        Logger.error(err)
+        return err
+    }
 }))
