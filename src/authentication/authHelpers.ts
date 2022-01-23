@@ -9,7 +9,6 @@ export const doesUserExists = async (email: string) => {
                 email: email
             }
         })
-        Logger.debug(user)
         return user || false
     } catch (err: any) {
         return err

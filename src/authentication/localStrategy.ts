@@ -1,30 +1,29 @@
-import passport from "passport";
-import * as passportLocal from 'passport-local'
-import { error } from "winston";
+import Local from "passport-local";
 import Logger from "../middlewares/winstonLoggerMiddleware";
 import { doesUserExists, isValidPassword } from "./authHelpers";
 
-const LocalStrategy = passportLocal.Strategy
+//TODO
+//add regex to password check
 
-passport.use('local', 
-    new LocalStrategy(async (username, password, done) => {
 
-    try {
-        const user = await doesUserExists(username)
-        const validPassword = await isValidPassword(password, user.password)
-        if (error) {
-            Logger.error(error)
-            return done(error)
-        }
-        if (!user) {
-            return done(null, false, { message: "Invalid username or non existant" })
-        }
-        if (!validPassword) {
-            return done(null, false, { message: "Invalid password" })
-        }
-        return done(null, { userId: user.id, userName: user.username, userEmail: user.email })
-    } catch (err: any) {
-        Logger.error(err)
-        return err
-    }
-}))
+export const LocalStrategy = new Local.Strategy(
+        { 
+        usernameField:'email', 
+        passwordField: 'password'
+        }, 
+        async (email, password, done) => {
+            try {
+                const user = await doesUserExists(email)
+                const validPassword = await isValidPassword(password, user.password)                
+                if (!user) {
+                    return done(null, false)
+                }
+                if (!validPassword) {
+                    return done(null, false)
+                }
+                return done(null, user.id)
+            } catch (err: any) {
+                Logger.error(err)
+                return err
+            }
+        })
