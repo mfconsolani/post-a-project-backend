@@ -9,14 +9,16 @@ const authRouter = Router()
 //TODO
 //Add password regex validation
 //Determine if jwt-redis is better than jsonwebtoken for this app
+//Implement refresh token endpoint
+//Return signed token when creating new user
 
 authRouter.post('/local/login', 
     passport.authenticate('local',
     { session: false }), 
     (req: Request, res: Response) => {
         try {
-            const accessToken = getAccessToken({userId: req.user})
-            res.status(200).json({token: accessToken})
+            const jwtTokens = getAccessToken({userId: req.user})
+            res.status(200).json({accessToken: jwtTokens.accessToken, refreshToken: jwtTokens.refreshToken})
         } catch (err:any) {
             Logger.error(err)
             res.status(400).send({success: false, error: err, message: "User and/or password are invalid"})
