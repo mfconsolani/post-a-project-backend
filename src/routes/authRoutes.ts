@@ -2,7 +2,9 @@ import { Router, Request, Response } from "express";
 import passport from "passport";
 import { createNewUser, doesUserExists } from "../authentication/authHelpers";
 import Logger from "../middlewares/winstonLoggerMiddleware";
-import { getAccessToken, verifyToken } from "../middlewares/authenticationJwt";
+import { getAccessToken, verifyToken, tokenList, SECRET_ACCESS_TOKEN, SECRET_ACCESS_TOKEN_EXPIRATION, SECRET_REFRESH_TOKEN } from "../middlewares/authenticationJwt";
+import * as jwt from 'jsonwebtoken'
+import { Console } from "console";
 
 const authRouter = Router()
 
@@ -42,24 +44,43 @@ authRouter.post('/local/signup', async (req: Request, res: Response) => {
     }
 })
 
-authRouter.delete('/local/logout', verifyToken,  (req:Request, res:Response) => {
-    console.log(req?.user, req.body)
-    console.log("I'm inside")
+//This endpoint is currently useless. 
+// authRouter.delete('/local/logout',  (req:Request, res:Response) => {
+//     const { token } = req.body
+//     console.log(token)
+//     console.log(req?.user, req.body)
+//     console.log("I'm inside")
 
-    if (req.user !== ''){
-        try {
-            req.user = '';
-            console.log("req.user" + req?.user, "req.body" + req.body,"req.cookies" + req.cookies)
-            res.send('logged out');
-        } catch (err) {
-            console.log(err)
-            res.status(400).send(err)
+//     tokenList.filter(t => t !== token)
+//     console.log(token, tokenList)
+
+//     res.send({token: token, success: "who the fuck knows", tokenList: tokenList})
+//   });
+
+
+authRouter.post('/token', (req:Request, res:Response) => {
+    const { token } = req.body
+    try {
+        if (!token) {
+            res.status(403).send({success: false, message: "Missing token"})
         }
-    } else {
-        res.send('Nothing te be logged out from')
+        if (!tokenList.includes(token)){
+            res.status(403).send({success: false, message: "Invalid token"})
+        } else {
+            //fix user:any type
+            jwt.verify(token, SECRET_REFRESH_TOKEN, (err:any, user:any) => {
+                if (err) {
+                    res.status(403).send({success: false, message: "Error when verifiying token"})
+                }
+                const newAccessToken = jwt.sign({userId: user.id}, SECRET_ACCESS_TOKEN, {expiresIn: SECRET_ACCESS_TOKEN_EXPIRATION})
+                res.status(201).json({accessToken: newAccessToken})
+            })
+        }
+    } catch (err){
+        Logger.error(err)
+        res.status(400).send({success: false, message: err})
     }
-
-  });
+})
 
 
 export default authRouter;
