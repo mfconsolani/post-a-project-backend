@@ -2,17 +2,18 @@ import { Router, Request, Response } from "express";
 import passport from "passport";
 import { createNewUser, doesUserExists } from "../authentication/authHelpers";
 import Logger from "../middlewares/winstonLoggerMiddleware";
-import { getAccessToken, verifyToken, tokenList, SECRET_ACCESS_TOKEN, SECRET_ACCESS_TOKEN_EXPIRATION, SECRET_REFRESH_TOKEN } from "../middlewares/authenticationJwt";
+import { getAccessToken, SECRET_ACCESS_TOKEN, SECRET_ACCESS_TOKEN_EXPIRATION, SECRET_REFRESH_TOKEN } from "../middlewares/authenticationJwt";
 import * as jwt from 'jsonwebtoken'
-import { Console } from "console";
 
-const authRouter = Router()
 
 //TODO
 //Add password regex validation
 //Determine if jwt-redis is better than jsonwebtoken for this app
-//Implement refresh token endpoint
 //Return signed token when creating new user
+//Fix bad practice of storing refreshTokenList in variable
+
+const authRouter = Router()
+let refreshTokenList:string[] = []
 
 authRouter.post('/local/login', 
     passport.authenticate('local',
@@ -20,6 +21,7 @@ authRouter.post('/local/login',
     (req: Request, res: Response) => {
         try {
             const jwtTokens = getAccessToken({userId: req.user})
+            refreshTokenList.push(jwtTokens.refreshToken)
             res.status(200).json({accessToken: jwtTokens.accessToken, refreshToken: jwtTokens.refreshToken})
         } catch (err:any) {
             Logger.error(err)
@@ -44,18 +46,11 @@ authRouter.post('/local/signup', async (req: Request, res: Response) => {
     }
 })
 
-//This endpoint is currently useless. 
-// authRouter.delete('/local/logout',  (req:Request, res:Response) => {
-//     const { token } = req.body
-//     console.log(token)
-//     console.log(req?.user, req.body)
-//     console.log("I'm inside")
-
-//     tokenList.filter(t => t !== token)
-//     console.log(token, tokenList)
-
-//     res.send({token: token, success: "who the fuck knows", tokenList: tokenList})
-//   });
+authRouter.delete('/local/logout',  (req:Request, res:Response) => {
+    const { token } = req.body
+    refreshTokenList = refreshTokenList.filter(t => t !== token)
+    res.send({token: token, success: "who the fuck knows", tokenList: refreshTokenList})
+  });
 
 
 authRouter.post('/token', (req:Request, res:Response) => {
@@ -64,7 +59,7 @@ authRouter.post('/token', (req:Request, res:Response) => {
         if (!token) {
             res.status(403).send({success: false, message: "Missing token"})
         }
-        if (!tokenList.includes(token)){
+        if (!refreshTokenList.includes(token)){
             res.status(403).send({success: false, message: "Invalid token"})
         } else {
             //fix user:any type
