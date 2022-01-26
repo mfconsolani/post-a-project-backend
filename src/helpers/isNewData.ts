@@ -17,6 +17,7 @@ const isNewData = async (req: Request) => {
             skill: true
         }
     })
+    
     //@ts-ignore
     //Return array from data records in DB and sort
     const valuesFromDB = Object.entries(getCurrentRecords).sort()
