@@ -33,7 +33,7 @@ model Roles {
 model Skills {
   id  Int @id @default(autoincrement())
   skill String @unique
-  skillInPost Project[]
+  skillInPost Project[] 
 }
 
 model User {

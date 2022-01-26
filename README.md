@@ -17,4 +17,5 @@ Post a Project backend application using express
 #### Company features
 1. Post a new project 💡
 2. Update an existing project 🆙
-
+3. See all posted projects 🔍
+4. See project by id 🆔

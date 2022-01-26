@@ -2,6 +2,9 @@ import { Router, Request, Response } from 'express';
 import { prisma, logPrismaError } from '../db';
 import isNewData from '../helpers/isNewData';
 
+//TODO
+// Delete project
+
 const projectRouter = Router()
 
 projectRouter.get('/', async (_req: Request, res: Response) => {
@@ -87,5 +90,23 @@ projectRouter.put('/:id', async (req: Request, res: Response) => {
     }
 });
 
+
+projectRouter.delete('/:id', async (req: Request, res: Response) => {
+    const { id } = req.params
+    try {
+        const deleteOneProject = await prisma.project.delete({
+            where: {
+                id: parseInt(id)
+            }
+        })
+        res.status(200).send({ 
+            success: true, 
+            response: deleteOneProject, 
+            message: "Project deleted ID: " + id })
+    } catch (error) {
+        const isPrismaError = logPrismaError(error)
+        res.status(404).send({ success: false, error: isPrismaError || error })
+    }
+});
 
 export default projectRouter;
