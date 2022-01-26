@@ -11,6 +11,8 @@ import * as jwt from 'jsonwebtoken'
 //Determine if jwt-redis is better than jsonwebtoken for this app
 //Return signed token when creating new user
 //Fix bad practice of storing refreshTokenList in variable
+//Implement a token and refresh token black/white list (maybe in redis?)
+//Implement emergency loggout or token clear endpoint with right permissions (security meassure)
 
 const authRouter = Router()
 let refreshTokenList:string[] = []
@@ -46,14 +48,23 @@ authRouter.post('/local/signup', async (req: Request, res: Response) => {
     }
 })
 
-authRouter.delete('/local/logout',  (req:Request, res:Response) => {
+authRouter.delete('/token/deleteRefresh',  (req:Request, res:Response) => {
     const { token } = req.body
-    refreshTokenList = refreshTokenList.filter(t => t !== token)
-    res.send({token: token, success: "who the fuck knows", tokenList: refreshTokenList})
+    try {
+        if (token && refreshTokenList.includes(token)){
+            refreshTokenList = refreshTokenList.filter(t => t !== token)
+            res.send({success: true, message: "Refresh token cleared"})
+        } else {
+            res.status(404).send({success: false, message: "Invalid token"})
+        }
+    } catch (err) {
+        Logger.error(err)
+        res.status(404).send({success: false, message: "Error when trying to log out"})
+    }
   });
 
 
-authRouter.post('/token', (req:Request, res:Response) => {
+authRouter.post('/token/refresh', (req:Request, res:Response) => {
     const { token } = req.body
     try {
         if (!token) {
@@ -68,7 +79,7 @@ authRouter.post('/token', (req:Request, res:Response) => {
                     res.status(403).send({success: false, message: "Error when verifiying token"})
                 }
                 const newAccessToken = jwt.sign({userId: user.id}, SECRET_ACCESS_TOKEN, {expiresIn: SECRET_ACCESS_TOKEN_EXPIRATION})
-                res.status(201).json({accessToken: newAccessToken})
+                res.status(201).json({success: true, accessToken: newAccessToken})
             })
         }
     } catch (err){
