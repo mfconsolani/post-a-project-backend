@@ -1,6 +1,9 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
+//TODO
+//Migrate schema
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -34,6 +37,7 @@ model Skills {
   id  Int @id @default(autoincrement())
   skill String @unique
   skillInPost Project[] 
+  skillInUser UserProfile[]
 }
 
 model User {
@@ -43,4 +47,48 @@ model User {
   password String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  gdprPolicy Boolean @default(false)
+  role Role @default(USER)
+  profile UserProfile? 
+}
+
+model UserProfile {
+  id Int @id @default(autoincrement())
+  user User @relation(fields: [userEmail], references: [email])
+  userEmail String
+  firstName String?
+  lastName String?
+  birthday DateTime?
+  phoneNumber Int?
+  city String?
+  country String?
+  description String?
+  skills Skills[]
+}
+
+model Company {
+  id Int @id @default(autoincrement())
+  name String? @unique
+  email String @unique
+  password String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  gdprPolicy Boolean @default(false)
+  companyProfile CompanyProfile?
+}
+
+model CompanyProfile {
+  id Int @id @default(autoincrement())
+  company Company @relation(fields: [companyEmail], references: [email])
+  companyEmail String
+  industry String?
+  phoneNumber Int?
+  employees String?
+  description String?
+  country String?
+}
+
+enum Role {
+  USER
+  ADMIN
 }
