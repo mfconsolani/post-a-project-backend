@@ -25,6 +25,8 @@ model Project {
   expiresBy DateTime
   likesCount Int
   location  String
+  projectOwner CompanyProfile @relation(fields: [owner], references: [companyEmail])
+  owner String
 }
 
 model Roles {
@@ -48,7 +50,8 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   gdprPolicy Boolean @default(false)
-  role Role @default(USER)
+  role SystemRole @default(USER)
+  profileType ProfileType @default(USER)
   profile UserProfile? 
 }
 
@@ -74,21 +77,29 @@ model Company {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   gdprPolicy Boolean @default(false)
-  companyProfile CompanyProfile?
+  role SystemRole @default(USER)
+  profileType ProfileType @default(COMPANY)
+  profile CompanyProfile?
 }
 
 model CompanyProfile {
   id Int @id @default(autoincrement())
   company Company @relation(fields: [companyEmail], references: [email])
-  companyEmail String
+  companyEmail String @unique
   industry String?
   phoneNumber Int?
   employees String?
   description String?
   country String?
+  projects Project[]
 }
 
-enum Role {
+enum SystemRole {
   USER
   ADMIN
+}
+
+enum ProfileType {
+  USER
+  COMPANY
 }
