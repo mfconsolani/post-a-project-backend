@@ -36,7 +36,7 @@ projectRouter.get('/:id', async (req: Request, res: Response) => {
 });
 
 projectRouter.post('/', async (req: Request, res: Response) => {
-    const { title, company, body, role, skill, duration, expiresBy, likesCount, location } = req.body
+    const { title, company, body, role, skill, duration, expiresBy, likesCount, location, projectOwner } = req.body
     try {
         const postProject = await prisma.project.create({
             data: {
@@ -48,7 +48,8 @@ projectRouter.post('/', async (req: Request, res: Response) => {
                 duration,
                 expiresBy,
                 likesCount,
-                location
+                location,
+                projectOwner: {connect: { companyEmail: projectOwner}}
             }
         })
         res.status(201).send({ success: true, postProject })
@@ -63,7 +64,7 @@ projectRouter.put('/:id', async (req: Request, res: Response) => {
 
     try {
         const isUpdatedRequired = await isNewData(req)
-        if (!isUpdatedRequired.isNewData){
+        if (!isUpdatedRequired.isNewData) {
             return res.status(200).send("Data is not new")
         } else {
             const postProject = await prisma.project.update({
@@ -99,10 +100,11 @@ projectRouter.delete('/:id', async (req: Request, res: Response) => {
                 id: parseInt(id)
             }
         })
-        res.status(200).send({ 
-            success: true, 
-            response: deleteOneProject, 
-            message: "Project deleted ID: " + id })
+        res.status(200).send({
+            success: true,
+            response: deleteOneProject,
+            message: "Project deleted ID: " + id
+        })
     } catch (error) {
         const isPrismaError = logPrismaError(error)
         res.status(404).send({ success: false, error: isPrismaError || error })

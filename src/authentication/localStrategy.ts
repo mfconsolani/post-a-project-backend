@@ -5,6 +5,8 @@ import { doesUserExists, isValidPassword } from "./authHelpers";
 //TODO
 //add regex to password check
 //add email to the return object
+//add ProfileType to the return object
+
 
 
 export const LocalStrategy = new Local.Strategy(

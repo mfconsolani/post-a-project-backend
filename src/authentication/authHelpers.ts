@@ -15,7 +15,7 @@ export const doesUserExists = async (email: string) => {
     }
 }
 
-export const astonHasher = (password: string): string => {
+export const ashtonHasher = (password: string): string => {
     return bcrypt.hashSync(password, 12)
 }
 
@@ -34,7 +34,7 @@ export const createNewUser = async (email: string, password: string, username?: 
             data: {
                 email: email,
                 username: username,
-                password: astonHasher(password)
+                password: ashtonHasher(password)
             }, select: {
                 email: true,
                 id: true,

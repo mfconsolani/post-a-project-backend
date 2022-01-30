@@ -23,7 +23,7 @@ model Project {
   duration String
   createdAt DateTime @default(now())
   expiresBy DateTime
-  likesCount Int
+  likesCount Int 
   location  String
   projectOwner CompanyProfile @relation(fields: [owner], references: [companyEmail])
   owner String
@@ -85,7 +85,7 @@ model Company {
 model CompanyProfile {
   id Int @id @default(autoincrement())
   company Company @relation(fields: [companyEmail], references: [email])
-  companyEmail String @unique
+  companyEmail String
   industry String?
   phoneNumber Int?
   employees String?

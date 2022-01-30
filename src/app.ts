@@ -1,6 +1,6 @@
 import express from 'express';
 import morganMiddleware from './middlewares/morganMiddleware';
-import { projectRouter, authRouter, profileRoutes } from './routes';
+import { projectRouter, authRouter, profileRouter } from './routes';
 import dotenv from 'dotenv';
 import passport from "passport";
 import { LocalStrategy } from './authentication/localStrategy';
@@ -17,7 +17,7 @@ app.use(passport.initialize());
 
 app.use('/api/projects', projectRouter)
 app.use('/api/auth', authRouter)
-app.use('/api/profile', profileRoutes)
+app.use('/api/profile', profileRouter)
 
 
 app.listen(process.env.PORT || 8080, () => {
