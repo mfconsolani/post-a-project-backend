@@ -1,4 +1,5 @@
 import { Router, Request, Response } from "express";
+import { send } from "process";
 import { prisma } from '../db';
 import Logger from "../middlewares/winstonLoggerMiddleware";
 
@@ -10,7 +11,7 @@ import Logger from "../middlewares/winstonLoggerMiddleware";
 const profileRouter = Router();
 
 
-//Post new profile data
+//Post new profile data for company profiles
 profileRouter.post('/company/:id', async (req:Request, res:Response) => {
     let { id } = req.params
     const parsedId = parseInt(id)
@@ -54,12 +55,77 @@ profileRouter.post('/company/:id', async (req:Request, res:Response) => {
 })
 
 
-//Put/replace profile data
+
+//TODO
+//Add the functionality to replace the data now that I can check if data has or not to be replaced
+//transform isNewData in a helper function that accepts a second function that retrieves the data from DB to be compared vs req.body
+
+//Put/replace profile data for company profiles
 profileRouter.put('/company/:id', (req:Request, res:Response) => {
+    let { body } = req
+    console.log(body)
+
+    try {
+        const isNewData = async (body:any) => {
+            // const { email: companyEmail, phone: phoneNumber } = body
+            const getCurrentRecords = await prisma.companyProfile.findUnique({
+                where: {
+                    companyEmail: body.companyEmail
+                }, select: {
+                    companyEmail: true,
+                    industry: true,
+                    phoneNumber: true,
+                    employees: true,
+                    description: true,
+                    country: true
+                }
+            })
+            console.log(getCurrentRecords)
+            //@ts-ignore
+            //Return array from data records in DB and sort
+            const valuesFromDB = Object.entries(getCurrentRecords).sort()
+            //Return array from values incoming from requests and sort
+            const valuesFromRequest = Object.entries(body).sort()
+            //Filter only the key-value pairs from the DB query that match the key-value pairs requested to be updated
+            const fieldsToCompare = valuesFromDB.filter((elem, i) => Object.keys(body).includes(elem[0]))
+        
+            // Uncomment loggers for debugging purposes
+            Logger.info("Fields to compare --> " + Object.values(fieldsToCompare).map(el => el[0]))
+            Logger.info("Current values in DB --> " + fieldsToCompare)
+            Logger.info("Incoming values from request --> " + valuesFromRequest)
+        
+            //Compare incoming values from request vs data currently in DB
+            const isUpdateRequired = () => {
+                const newValues = {}
+                //@ts-ignore
+                valuesFromRequest.map((elem, i) => {
+                    if (elem[1] !== fieldsToCompare[i][1]) {
+                        Logger.info("New value --> " + elem[1] + "  |----|  " + "Old value --> " + fieldsToCompare[i][1])
+                        Object.assign(newValues, { [elem[0]]: elem[1] })
+                    } else {
+                        return false
+                    }
+                })
+                return Object.keys(newValues).length > 0 ? { isNewData: true, newValues } : { isNewData: false }
+            }
+            return isUpdateRequired()
+        }
+
+        isNewData(body)
+        res.status(200).send({success:true})
+        // if (!!isNewData(body)){
+        //     res.status(200).send({success: true})
+        // } 
+
+    } catch (err){
+        console.log(err)
+        res.status(404).send({success: false, error: err}) 
+    }
+
 
 })
 
-
+//post profile data for user profiles
 profileRouter.post('/user/:id', async (req:Request, res: Response) => {
     
     let { id } = req.params
@@ -80,14 +146,10 @@ profileRouter.post('/user/:id', async (req:Request, res: Response) => {
         const findProfile = await prisma.userProfile.findFirst(email)
         let mappedData:any = []
         const mappedSkills = skills.map((skill:any) => {
-            // let mappedStuff = {skill: skill}
             mappedData.push({skill: skill})
             return 
         })
 
-        console.log("mappedData", mappedData)
-        console.log(skills)
-        // console.log(mappedSkills)
         if (findUser && !findProfile){
             const createProfile = await prisma.userProfile.create({
                 data: {
@@ -112,6 +174,11 @@ profileRouter.post('/user/:id', async (req:Request, res: Response) => {
         Logger.error(err)
         res.status(404).send({success: false, error: err})
     }
+
+})
+
+//Put/replace profile data for user profiles
+profileRouter.put('/company/:id', (req:Request, res:Response) => {
 
 })
 
