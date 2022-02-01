@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { prisma, logPrismaError } from '../db';
-import { isNewData } from '../helpers/isNewDataPatched';
+import { isNewData } from '../helpers/isNewData';
 //TODO
 // Delete project
 

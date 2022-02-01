@@ -1,7 +1,7 @@
 import { Router, Request, Response } from "express";
 import { prisma } from '../db';
 import Logger from "../middlewares/winstonLoggerMiddleware";
-import { isNewData } from '../helpers/isNewDataPatched'
+import { isNewData } from '../helpers/isNewData'
 
 //TODO
 //Create profile schemas or add to User schemas -in which case, add also Company schema
