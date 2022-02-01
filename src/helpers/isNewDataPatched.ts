@@ -1,23 +1,9 @@
 import Logger from '../middlewares/winstonLoggerMiddleware';
-import { prisma } from '../db';
 import { Request } from 'express';
-
-//TODO
-//Check if this function works when what's to be changed are the skills or role
-
-//Query database to extract current data in DB for the project selected
-const isNewData = async (req: Request) => {
-    let { body } = req
-    const getCurrentRecords = await prisma.project.findUnique({
-        where: {
-            id: parseInt(req.params.id)
-        },
-        include: {
-            role: true,
-            skill: true
-        }
-    })
-    
+export const isNewData = async (req:Request, callback:CallableFunction) => {
+    const { body } = req
+    const getCurrentRecords = await callback(body)
+    // console.log(getCurrentRecords)
     //@ts-ignore
     //Return array from data records in DB and sort
     const valuesFromDB = Object.entries(getCurrentRecords).sort()
@@ -47,5 +33,3 @@ const isNewData = async (req: Request) => {
     }
     return isUpdateRequired()
 }
-
-export default isNewData;

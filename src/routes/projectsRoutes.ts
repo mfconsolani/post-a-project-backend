@@ -1,7 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { prisma, logPrismaError } from '../db';
-import isNewData from '../helpers/isNewData';
-
+import { isNewData } from '../helpers/isNewDataPatched';
 //TODO
 // Delete project
 
@@ -60,27 +59,36 @@ projectRouter.post('/', async (req: Request, res: Response) => {
 });
 
 projectRouter.put('/:id', async (req: Request, res: Response) => {
-    const { title, company, body, role, skill, duration, expiresBy, likesCount, location } = req.body
-
+    const { body } = req
     try {
-        const isUpdatedRequired = await isNewData(req)
+        const isUpdatedRequired = await isNewData(req, async (arg: any) => {
+            return await prisma.project.findUnique({
+                where: {
+                    id: parseInt(req.params.id)
+                },
+                include: {
+                    role: true,
+                    skill: true
+                }
+            })
+        })
         if (!isUpdatedRequired.isNewData) {
-            return res.status(200).send("Data is not new")
+            return res.status(200).send({success: true, message: "Data is not new; no update required"})
         } else {
             const postProject = await prisma.project.update({
                 where: {
                     id: parseInt(req.params.id)
                 },
                 data: {
-                    title: title || undefined,
-                    company: company || undefined,
-                    body: body || undefined,
-                    role: (!!role ? { connect: { role: role } } : undefined),
-                    skill: (!!skill ? { connect: { skill: skill } } : undefined),
-                    duration: duration || undefined,
-                    expiresBy: expiresBy || undefined,
-                    likesCount: likesCount || undefined,
-                    location: location || undefined
+                    title: body.title || undefined,
+                    company: body.company || undefined,
+                    body: body.body || undefined,
+                    role: (!!body.role ? { connect: { role: body.role } } : undefined),
+                    skill: (!!body.skill ? { connect: { skill: body.skill } } : undefined),
+                    duration: body.duration || undefined,
+                    expiresBy: body.expiresBy || undefined,
+                    likesCount: body.likesCount || undefined,
+                    location: body.location || undefined
                 }
             })
             res.status(201).send({ success: true, postProject })

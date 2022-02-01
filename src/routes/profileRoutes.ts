@@ -1,7 +1,7 @@
 import { Router, Request, Response } from "express";
-import { send } from "process";
 import { prisma } from '../db';
 import Logger from "../middlewares/winstonLoggerMiddleware";
+import { isNewData } from '../helpers/isNewDataPatched'
 
 //TODO
 //Create profile schemas or add to User schemas -in which case, add also Company schema
@@ -12,7 +12,7 @@ const profileRouter = Router();
 
 
 //Post new profile data for company profiles
-profileRouter.post('/company/:id', async (req:Request, res:Response) => {
+profileRouter.post('/company/:id', async (req: Request, res: Response) => {
     let { id } = req.params
     const parsedId = parseInt(id)
     const { email, industry, phone, employees, description, country } = req.body
@@ -28,13 +28,13 @@ profileRouter.post('/company/:id', async (req:Request, res:Response) => {
                 profileType: true
             }
         })
-        
+
         const findProfile = await prisma.companyProfile.findFirst(email)
 
-        if (findCompany && !findProfile){
+        if (findCompany && !findProfile) {
             const createProfile = await prisma.companyProfile.create({
                 data: {
-                    company: {connect: {email}},
+                    company: { connect: { email } },
                     industry: industry,
                     phoneNumber: phone,
                     employees: employees,
@@ -43,14 +43,14 @@ profileRouter.post('/company/:id', async (req:Request, res:Response) => {
                 }
             })
 
-            res.status(201).send({success: true, message: createProfile})
+            res.status(201).send({ success: true, message: createProfile })
         } else {
-            res.status(400).send({success: false, message: "Company not registered or profile already registered"})
+            res.status(400).send({ success: false, message: "Company not registered or profile already registered" })
         }
 
-    } catch (err){
+    } catch (err) {
         Logger.error(err)
-        res.status(404).send({success: false, error: err})
+        res.status(404).send({ success: false, error: err })
     }
 })
 
@@ -61,16 +61,14 @@ profileRouter.post('/company/:id', async (req:Request, res:Response) => {
 //transform isNewData in a helper function that accepts a second function that retrieves the data from DB to be compared vs req.body
 
 //Put/replace profile data for company profiles
-profileRouter.put('/company/:id', (req:Request, res:Response) => {
-    let { body } = req
-    console.log(body)
+profileRouter.put('/company/:id', async (req: Request, res: Response) => {
+    const { body } = req
 
     try {
-        const isNewData = async (body:any) => {
-            // const { email: companyEmail, phone: phoneNumber } = body
-            const getCurrentRecords = await prisma.companyProfile.findUnique({
+        const isUpdatedRequired = await isNewData(req, async (arg: any) => {
+            return await prisma.companyProfile.findUnique({
                 where: {
-                    companyEmail: body.companyEmail
+                    companyEmail: arg.companyEmail
                 }, select: {
                     companyEmail: true,
                     industry: true,
@@ -80,54 +78,38 @@ profileRouter.put('/company/:id', (req:Request, res:Response) => {
                     country: true
                 }
             })
-            console.log(getCurrentRecords)
-            //@ts-ignore
-            //Return array from data records in DB and sort
-            const valuesFromDB = Object.entries(getCurrentRecords).sort()
-            //Return array from values incoming from requests and sort
-            const valuesFromRequest = Object.entries(body).sort()
-            //Filter only the key-value pairs from the DB query that match the key-value pairs requested to be updated
-            const fieldsToCompare = valuesFromDB.filter((elem, i) => Object.keys(body).includes(elem[0]))
-        
-            // Uncomment loggers for debugging purposes
-            Logger.info("Fields to compare --> " + Object.values(fieldsToCompare).map(el => el[0]))
-            Logger.info("Current values in DB --> " + fieldsToCompare)
-            Logger.info("Incoming values from request --> " + valuesFromRequest)
-        
-            //Compare incoming values from request vs data currently in DB
-            const isUpdateRequired = () => {
-                const newValues = {}
-                //@ts-ignore
-                valuesFromRequest.map((elem, i) => {
-                    if (elem[1] !== fieldsToCompare[i][1]) {
-                        Logger.info("New value --> " + elem[1] + "  |----|  " + "Old value --> " + fieldsToCompare[i][1])
-                        Object.assign(newValues, { [elem[0]]: elem[1] })
-                    } else {
-                        return false
-                    }
-                })
-                return Object.keys(newValues).length > 0 ? { isNewData: true, newValues } : { isNewData: false }
-            }
-            return isUpdateRequired()
+        })
+
+        if (!isUpdatedRequired.isNewData) {
+            return res.status(200).send({ success: false, message: "Data is not new; no update required" })
+        } else {
+            const updateProfile = await prisma.companyProfile.update({
+                where: {
+                    companyEmail: body.companyEmail
+                },
+                data: {
+                    //For the moment companyEmail shouldn't be modified as it would mess up all the DB table relations
+                    //TODO
+                    //For the future, use id for relation scalar field instead of email.
+                    companyEmail: undefined,
+                    industry: body.industry || undefined,
+                    phoneNumber: body.phoneNumber || undefined,
+                    employees: body.employees || undefined,
+                    description: body.description || undefined,
+                    country: body.country || undefined
+                }
+            })
+            res.status(201).send({ success: true, updateProfile })
         }
-
-        isNewData(body)
-        res.status(200).send({success:true})
-        // if (!!isNewData(body)){
-        //     res.status(200).send({success: true})
-        // } 
-
-    } catch (err){
+    } catch (err) {
         console.log(err)
-        res.status(404).send({success: false, error: err}) 
+        res.status(404).send({ success: false, error: err, message: "Unexpected error when updating profile" })
     }
-
-
 })
 
 //post profile data for user profiles
-profileRouter.post('/user/:id', async (req:Request, res: Response) => {
-    
+profileRouter.post('/user/:id', async (req: Request, res: Response) => {
+
     let { id } = req.params
     const parsedId = parseInt(id)
     const { email, firstName, lastName, birthday, phone, city, description, country, skills } = req.body
@@ -142,18 +124,18 @@ profileRouter.post('/user/:id', async (req:Request, res: Response) => {
                 email: true,
                 profileType: true
             }
-        })        
+        })
         const findProfile = await prisma.userProfile.findFirst(email)
-        let mappedData:any = []
-        const mappedSkills = skills.map((skill:any) => {
-            mappedData.push({skill: skill})
-            return 
+        let mappedData: any = []
+        const mappedSkills = skills.map((skill: any) => {
+            mappedData.push({ skill: skill })
+            return
         })
 
-        if (findUser && !findProfile){
+        if (findUser && !findProfile) {
             const createProfile = await prisma.userProfile.create({
                 data: {
-                    user: {connect: {email: email}},
+                    user: { connect: { email: email } },
                     firstName: firstName,
                     lastName: lastName,
                     birthday: birthday,
@@ -161,24 +143,24 @@ profileRouter.post('/user/:id', async (req:Request, res: Response) => {
                     city: city,
                     country: country,
                     description: description,
-                    skills: {connect: mappedData.length > 1 ? mappedData : {skill: skills[0]}}
+                    skills: { connect: mappedData.length > 1 ? mappedData : { skill: skills[0] } }
                 }
             })
 
-            res.status(201).send({success: true, message: createProfile})
+            res.status(201).send({ success: true, message: createProfile })
         } else {
-            res.status(400).send({success: false, message: "User not registered or profile already registered"})
+            res.status(400).send({ success: false, message: "User not registered or profile already registered" })
         }
 
-    } catch (err){
+    } catch (err) {
         Logger.error(err)
-        res.status(404).send({success: false, error: err})
+        res.status(404).send({ success: false, error: err })
     }
 
 })
 
 //Put/replace profile data for user profiles
-profileRouter.put('/company/:id', (req:Request, res:Response) => {
+profileRouter.put('/company/:id', (req: Request, res: Response) => {
 
 })
 
