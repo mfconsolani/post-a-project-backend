@@ -4,7 +4,6 @@ import Logger from "../middlewares/winstonLoggerMiddleware";
 import { isNewData } from '../helpers/isNewData'
 
 //TODO
-//Create profile schemas or add to User schemas -in which case, add also Company schema
 //Add validator to check if final user is a company or a user
 
 
@@ -57,7 +56,7 @@ profileRouter.post('/company/:id', async (req: Request, res: Response) => {
 
 
 //TODO
-//Add the functionality to replace the data now that I can check if data has or not to be replaced
+//Add the functionality to replace the data now that I can check if data has to be replaced or not
 //transform isNewData in a helper function that accepts a second function that retrieves the data from DB to be compared vs req.body
 
 //Put/replace profile data for company profiles
@@ -143,7 +142,8 @@ profileRouter.post('/user/:id', async (req: Request, res: Response) => {
                     city: city,
                     country: country,
                     description: description,
-                    skills: { connect: mappedData.length > 1 ? mappedData : { skill: skills[0] } }
+                    //Pending to check if undefined works if no skills assigned in create profile endpoint
+                    skills: { connect: mappedData.length > 1 ? mappedData : { skill: skills[0] || undefined } }
                 }
             })
 
@@ -160,7 +160,65 @@ profileRouter.post('/user/:id', async (req: Request, res: Response) => {
 })
 
 //Put/replace profile data for user profiles
-profileRouter.put('/company/:id', (req: Request, res: Response) => {
+//TODO
+//Add list of Skills to check and be updated. Pending to think about the logic
+profileRouter.put('/user/:id', async (req: Request, res: Response) => {
+    const { body } = req
+
+    try {
+        const isUpdatedRequired = await isNewData(req, async (arg: any) => {
+            return await prisma.userProfile.findUnique({
+                where: {
+                    userEmail: arg.userEmail
+                }, select: {
+                    userEmail: true,
+                    firstName: true,
+                    lastName: true,
+                    birthday: true,
+                    phoneNumber: true,
+                    city: true,
+                    country: true,
+                    description: true,
+                    skills: true
+                }
+            })
+        })
+
+        if (!isUpdatedRequired.isNewData) {
+            return res.status(200).send({ success: false, message: "Data is not new; no update required" })
+        } else {
+
+            //The idea her is get skills in req, and create a new array/object merging the 
+            // skills from DB and request and filtering those that are equal
+            //But the best choice should be: check new skills and connect and disconnect 
+            // the ones that are no longer selected by the user. 
+            let mappedData: any = []
+            const mappedSkills = body.skills.map((skill: any) => {
+                mappedData.push({ skill: skill })
+                return
+            })
+            const updateProfile = await prisma.userProfile.update({
+                where: {
+                    userEmail: body.userEmail
+                },
+                data: {
+                    userEmail: undefined,
+                    firstName: body.firstName || undefined,
+                    lastName: body.lastName || undefined,
+                    birthday: body.birthday || undefined,
+                    phoneNumber: body.phoneNumber || undefined,
+                    city: body.city || undefined,
+                    country: body.country || undefined,
+                    description: body.description || undefined,
+                    skills: { connect: mappedData.length > 1 ? mappedData : { skill: body.skills[0] } } 
+                }
+            })
+            res.status(201).send({ success: true, updateProfile })
+        }
+    } catch (err) {
+        console.log(err)
+        res.status(404).send({ success: false, error: err, message: "Unexpected error when updating profile" })
+    }
 
 })
 

@@ -61,7 +61,7 @@ model UserProfile {
   userEmail String
   firstName String?
   lastName String?
-  birthday DateTime?
+  birthday String?
   phoneNumber Int?
   city String?
   country String?
