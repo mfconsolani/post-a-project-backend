@@ -5,10 +5,10 @@ import { isNewData } from '../helpers/isNewData'
 
 //TODO
 //Add validator to check if final user is a company or a user
+//Add JWT verification
 
 
 const profileRouter = Router();
-
 
 //Post new profile data for company profiles
 profileRouter.post('/company/:id', async (req: Request, res: Response) => {
@@ -52,12 +52,6 @@ profileRouter.post('/company/:id', async (req: Request, res: Response) => {
         res.status(404).send({ success: false, error: err })
     }
 })
-
-
-
-//TODO
-//Add the functionality to replace the data now that I can check if data has to be replaced or not
-//transform isNewData in a helper function that accepts a second function that retrieves the data from DB to be compared vs req.body
 
 //Put/replace profile data for company profiles
 profileRouter.put('/company/:id', async (req: Request, res: Response) => {
@@ -108,7 +102,6 @@ profileRouter.put('/company/:id', async (req: Request, res: Response) => {
 
 //post profile data for user profiles
 profileRouter.post('/user/:id', async (req: Request, res: Response) => {
-
     let { id } = req.params
     const parsedId = parseInt(id)
     const { email, firstName, lastName, birthday, phone, city, description, country, skills } = req.body
@@ -124,11 +117,13 @@ profileRouter.post('/user/:id', async (req: Request, res: Response) => {
                 profileType: true
             }
         })
-        const findProfile = await prisma.userProfile.findFirst(email)
-        let mappedData: any = []
-        const mappedSkills = skills.map((skill: any) => {
-            mappedData.push({ skill: skill })
-            return
+        const findProfile = await prisma.userProfile.findFirst({
+            where: {
+                userEmail: email
+            }, select: {
+                id: true,
+                userEmail: true
+            }
         })
 
         if (findUser && !findProfile) {
@@ -142,8 +137,7 @@ profileRouter.post('/user/:id', async (req: Request, res: Response) => {
                     city: city,
                     country: country,
                     description: description,
-                    //Pending to check if undefined works if no skills assigned in create profile endpoint
-                    skills: { connect: mappedData.length > 1 ? mappedData : { skill: skills[0] || undefined } }
+                    skills: {connect: skills}
                 }
             })
 
@@ -160,8 +154,6 @@ profileRouter.post('/user/:id', async (req: Request, res: Response) => {
 })
 
 //Put/replace profile data for user profiles
-//TODO
-//Add list of Skills to check and be updated. Pending to think about the logic
 profileRouter.put('/user/:id', async (req: Request, res: Response) => {
     const { body } = req
 
@@ -188,15 +180,14 @@ profileRouter.put('/user/:id', async (req: Request, res: Response) => {
             return res.status(200).send({ success: false, message: "Data is not new; no update required" })
         } else {
 
-            //The idea her is get skills in req, and create a new array/object merging the 
-            // skills from DB and request and filtering those that are equal
-            //But the best choice should be: check new skills and connect and disconnect 
-            // the ones that are no longer selected by the user. 
-            let mappedData: any = []
-            const mappedSkills = body.skills.map((skill: any) => {
-                mappedData.push({ skill: skill })
-                return
+            const skillsInDb = await prisma.userProfile.findUnique({
+                where: {
+                    userEmail: body.userEmail
+                }, include: {
+                    skills: {select: {skill: true}}
+                }
             })
+
             const updateProfile = await prisma.userProfile.update({
                 where: {
                     userEmail: body.userEmail
@@ -210,7 +201,7 @@ profileRouter.put('/user/:id', async (req: Request, res: Response) => {
                     city: body.city || undefined,
                     country: body.country || undefined,
                     description: body.description || undefined,
-                    skills: { connect: mappedData.length > 1 ? mappedData : { skill: body.skills[0] } } 
+                    skills: {disconnect: skillsInDb?.skills, connect: body.skills },  
                 }
             })
             res.status(201).send({ success: true, updateProfile })

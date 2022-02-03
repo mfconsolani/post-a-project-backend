@@ -7,9 +7,9 @@ import { Request } from 'express';
 
 export const isNewData = async (req:Request, callback:CallableFunction) => {
     const { body } = req
-    console.log(body)
+    // console.log(body)
     const getCurrentRecords = await callback(body)
-    console.log(getCurrentRecords)
+    // console.log(getCurrentRecords)
     //@ts-ignore
     //Return array from data records in DB and sort
     const valuesFromDB = Object.entries(getCurrentRecords).sort()
@@ -19,9 +19,9 @@ export const isNewData = async (req:Request, callback:CallableFunction) => {
     const fieldsToCompare = valuesFromDB.filter((elem, i) => Object.keys(body).includes(elem[0]))
 
     // Uncomment loggers for debugging purposes
-    Logger.info("Fields to compare --> " + Object.values(fieldsToCompare).map(el => el[0]))
-    Logger.info("Current values in DB --> " + fieldsToCompare)
-    Logger.info("Incoming values from request --> " + valuesFromRequest)
+    // Logger.info("Fields to compare --> " + Object.values(fieldsToCompare).map(el => el[0]))
+    // Logger.info("Current values in DB --> " + fieldsToCompare)
+    // Logger.info("Incoming values from request --> " + valuesFromRequest)
 
     //Compare incoming values from request vs data currently in DB
     const isUpdateRequired = () => {
@@ -29,7 +29,7 @@ export const isNewData = async (req:Request, callback:CallableFunction) => {
         //@ts-ignore
         valuesFromRequest.map((elem, i) => {
             if (elem[1] !== fieldsToCompare[i][1]) {
-                Logger.info("New value --> " + elem[1] + "  |----|  " + "Old value --> " + fieldsToCompare[i][1])
+                // Logger.info("New value --> " + elem[1] + "  |----|  " + "Old value --> " + fieldsToCompare[i][1])
                 Object.assign(newValues, { [elem[0]]: elem[1] })
             } else {
                 return false
