@@ -27,7 +27,7 @@ projectRouter.get('/:id', async (req: Request, res: Response) => {
                 skill: true
             }
         })
-        res.status(200).send({ success: true, response: findOneProject })
+        res.status(200).send({ success: true, message: findOneProject })
     } catch (error) {
         const isPrismaError = logPrismaError(error)
         res.status(404).send({ success: false, error: isPrismaError || error })
