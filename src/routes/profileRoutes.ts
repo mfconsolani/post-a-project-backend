@@ -2,6 +2,7 @@ import { Router, Request, Response } from "express";
 import { prisma } from '../db';
 import Logger from "../middlewares/winstonLoggerMiddleware";
 import { isNewData } from '../helpers/isNewData'
+import { areSkillsDifferent } from "../helpers/areSkillsDifferent";
 
 //TODO
 //Add validator to check if final user is a company or a user
@@ -158,6 +159,13 @@ profileRouter.put('/user/:id', async (req: Request, res: Response) => {
     const { body } = req
 
     try {
+        const skillsInDb = await prisma.userProfile.findUnique({
+            where: {
+                userEmail: body.userEmail
+            }, include: {
+                skills: {select: {skill: true}}
+            }
+        })
         const isUpdatedRequired = await isNewData(req, async (arg: any) => {
             return await prisma.userProfile.findUnique({
                 where: {
@@ -171,23 +179,18 @@ profileRouter.put('/user/:id', async (req: Request, res: Response) => {
                     city: true,
                     country: true,
                     description: true,
-                    skills: true
+                    skills: true // <<<-------- BUG IS HERE!!!!!
                 }
             })
-        })
+        }, req.body.skills, skillsInDb?.skills)
 
+
+        // console.log("are skills different?", areSkillsDifferent(req.body.skills, skillsInDb?.skills),"is update required ", isUpdatedRequired.isNewData)
+        // if (!isUpdatedRequired.isNewData && areSkillsDifferent(req.body.skills, skillsInDb?.skills).difference) {
         if (!isUpdatedRequired.isNewData) {
             return res.status(200).send({ success: false, message: "Data is not new; no update required" })
         } else {
-
-            const skillsInDb = await prisma.userProfile.findUnique({
-                where: {
-                    userEmail: body.userEmail
-                }, include: {
-                    skills: {select: {skill: true}}
-                }
-            })
-
+            
             const updateProfile = await prisma.userProfile.update({
                 where: {
                     userEmail: body.userEmail
@@ -202,6 +205,8 @@ profileRouter.put('/user/:id', async (req: Request, res: Response) => {
                     country: body.country || undefined,
                     description: body.description || undefined,
                     skills: {disconnect: skillsInDb?.skills, connect: body.skills },  
+                }, include: {
+                    skills: {select: {skill: true}}
                 }
             })
             res.status(201).send({ success: true, updateProfile })
