@@ -1,59 +1,59 @@
 import { Request, Response, Router } from "express";
 import { prisma, logPrismaError } from '../db';
 
-const usersRouter = Router()
+const companyRouter = Router()
 
 //TODO
 //Add permision checker: only admin roles authorized
 //Add JWT authentication
 
-//find all users
-usersRouter.get("/", async (req: Request, res: Response) => {
+//find all companies
+companyRouter.get("/", async (req: Request, res: Response) => {
     try {
-        const getAllUsers = await prisma.user.findMany({
+        const getAllCompanies = await prisma.company.findMany({
             select: {
                 id: true,
-                username: true,
+                name: true,
                 email: true,
                 role: true,
                 profileType: true
             }
         })
-        res.status(200).send({ success: true, message: getAllUsers })
+        res.status(200).send({ success: true, message: getAllCompanies })
     } catch (err) {
         res.status(400).send({
             success: false,
             error: err,
-            message: "Error when getting all users"
+            message: "Error when getting all companies"
         })
     }
 })
 
 //find one user
-usersRouter.get('/:id', async (req: Request, res: Response) => {
+companyRouter.get('/:id', async (req: Request, res: Response) => {
     try {
-        const findOneUser = await prisma.user.findUnique({
+        const findOneCompany = await prisma.company.findUnique({
             where: {
                 id: parseInt(req.params.id)
             },
             select: {
                 id: true,
-                username: true,
+                name: true,
                 email: true,
                 role: true,
                 profileType: true
             }
         })
-        res.status(200).send({ success: true, message: findOneUser ?? "User doesn't exist" })
+        res.status(200).send({ success: true, message: findOneCompany ?? "Company doesn't exist" })
     } catch (error) {
         const isPrismaError = logPrismaError(error)
         console.log(error)
         res.status(404).send({
             success: false,
             error: isPrismaError || error,
-            message: "Error when finding the user requested"
+            message: "Error when finding the company requested"
         })
     }
 })
 
-export default usersRouter;
+export default companyRouter;
