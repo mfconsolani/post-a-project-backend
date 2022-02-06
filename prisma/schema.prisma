@@ -1,6 +1,9 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
+//TODO
+//Migrate schema
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -20,8 +23,10 @@ model Project {
   duration String
   createdAt DateTime @default(now())
   expiresBy DateTime
-  likesCount Int
+  likesCount Int 
   location  String
+  projectOwner CompanyProfile @relation(fields: [owner], references: [companyEmail])
+  owner String
 }
 
 model Roles {
@@ -33,5 +38,68 @@ model Roles {
 model Skills {
   id  Int @id @default(autoincrement())
   skill String @unique
-  skillInPost Project[]
+  skillInPost Project[] 
+  skillInUser UserProfile[]
+}
+
+model User {
+  id Int @id @default(autoincrement())
+  username String? @unique
+  email String @unique
+  password String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  gdprPolicy Boolean @default(false)
+  role SystemRole @default(USER)
+  profileType ProfileType @default(USER)
+  profile UserProfile? 
+}
+
+model UserProfile {
+  id Int @id @default(autoincrement())
+  user User @relation(fields: [userEmail], references: [email])
+  userEmail String
+  firstName String?
+  lastName String?
+  birthday String?
+  phoneNumber Int?
+  city String?
+  country String?
+  description String?
+  skills Skills[]
+}
+
+model Company {
+  id Int @id @default(autoincrement())
+  name String? @unique
+  email String @unique
+  password String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  gdprPolicy Boolean @default(false)
+  role SystemRole @default(USER)
+  profileType ProfileType @default(COMPANY)
+  profile CompanyProfile?
+}
+
+model CompanyProfile {
+  id Int @id @default(autoincrement())
+  company Company @relation(fields: [companyEmail], references: [email])
+  companyEmail String
+  industry String?
+  phoneNumber Int?
+  employees String?
+  description String?
+  country String?
+  projects Project[]
+}
+
+enum SystemRole {
+  USER
+  ADMIN
+}
+
+enum ProfileType {
+  USER
+  COMPANY
 }
