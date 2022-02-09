@@ -4,10 +4,12 @@ import { projectRouter, authRouter, profileRouter, usersRouter, companyRouter } 
 import dotenv from 'dotenv';
 import passport from "passport";
 import { LocalStrategy } from './authentication/localStrategy';
+import cors from 'cors'
 
 dotenv.config()
 
 const app = express()
+app.use(cors())
 passport.use(LocalStrategy)
 app.use(express.json())
 app.use(morganMiddleware)

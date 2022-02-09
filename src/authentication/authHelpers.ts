@@ -2,6 +2,9 @@ import bcrypt from 'bcrypt'
 import { prisma } from '../db';
 import Logger from '../middlewares/winstonLoggerMiddleware';
 
+
+//TODO
+//CreateNewUser function does not adapt to the new user schema. Fix
 export const doesUserExists = async (email: string) => {
     try {
         const user = await prisma.user.findUnique({
@@ -30,10 +33,10 @@ export const isValidPassword = async (password: string, userPassword: string) =>
 export const createNewUser = async (email: string, password: string, username?: string) => {
 
     try {
-        const user = await prisma.user.create({
+        const user = await prisma.user.create({ 
             data: {
                 email: email,
-                username: username,
+                username: (username ? username : undefined),
                 password: ashtonHasher(password)
             }, select: {
                 email: true,
@@ -43,7 +46,7 @@ export const createNewUser = async (email: string, password: string, username?: 
         })
         return user
     } catch (err: any) {
-        return err
+        throw err
     }
 
 }
