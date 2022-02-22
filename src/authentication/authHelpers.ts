@@ -41,7 +41,7 @@ export const createNewUser = async (email: string, password: string, username?: 
             }, select: {
                 email: true,
                 id: true,
-                username: (username ? true : undefined)
+                username: (username ? true : false)
             }
         })
         return user
