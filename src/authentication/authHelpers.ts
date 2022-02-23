@@ -14,7 +14,7 @@ export const doesUserExists = async (email: string) => {
         })
         return user || false
     } catch (err: any) {
-        return err
+        throw err
     }
 }
 
@@ -25,8 +25,8 @@ export const ashtonHasher = (password: string): string => {
 export const isValidPassword = async (password: string, userPassword: string) => {
     try {
         return await bcrypt.compare(password, userPassword)
-    } catch (err) {
-        return err
+    } catch (err:any) {
+        throw err
     }
 }
 

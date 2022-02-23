@@ -20,15 +20,20 @@ let refreshTokenList: string[] = []
 authRouter.post('/local/login',
     passport.authenticate('local',
         { session: false }),
-    (req: Request, res: Response) => {
+    async (req: Request, res: Response) => {
         try {
             const jwtTokens = getAccessToken({ userId: req.user })
             refreshTokenList.push(jwtTokens.refreshToken)
+            console.log(req.body.email)
+            const userData = await doesUserExists(req.body.email)
+            console.log(userData)
             res.status(200).json({
                 accessToken: jwtTokens.accessToken,
                 refreshToken: jwtTokens.refreshToken,
                 success: true,
-                message: "Successful login"
+                message: "Successful login",
+                userId: userData.id,
+                userEmail: userData.email
             })
         } catch (err: any) {
             Logger.error(err)
