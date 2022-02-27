@@ -8,8 +8,13 @@ const projectRouter = Router()
 
 projectRouter.get('/', async (_req: Request, res: Response) => {
     try {
-        const findAllProjects = await prisma.project.findMany()
-        res.status(200).send({ success: true, response: findAllProjects })
+        const findAllProjects = await prisma.project.findMany({
+            include: {
+                skill: true,
+                role: true
+            }
+        })
+        res.status(200).send({ success: true, data: findAllProjects })
     } catch (error) {
         const isPrismaError = logPrismaError(error)
         res.status(404).send({ success: false, error: isPrismaError || error })
@@ -110,7 +115,7 @@ projectRouter.delete('/:id', async (req: Request, res: Response) => {
         })
         res.status(200).send({
             success: true,
-            response: deleteOneProject,
+            data: deleteOneProject,
             message: "Project deleted ID: " + id
         })
     } catch (error) {

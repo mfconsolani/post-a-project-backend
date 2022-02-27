@@ -27,7 +27,7 @@ authRouter.post('/local/login',
             console.log(req.body.email)
             const userData = await doesUserExists(req.body.email)
             console.log(userData)
-            res.status(200).json({
+            userData && res.status(200).json({
                 accessToken: jwtTokens.accessToken,
                 refreshToken: jwtTokens.refreshToken,
                 success: true,
@@ -46,9 +46,9 @@ authRouter.post('/local/signup', async (req: Request, res: Response) => {
     const { username, email, password } = req.body
     try {
         const emailAlreadyExists = await doesUserExists(email)
-        if (emailAlreadyExists.email) {
+        if (emailAlreadyExists && emailAlreadyExists.email) {
             res.status(409).json({ success: false, message: "Email already in use" })
-        } else if (!emailAlreadyExists.email) {
+        } else if (emailAlreadyExists && !emailAlreadyExists.email) {
             const newUser = await createNewUser(email, password, username)
             res.status(201).json({ success: true, message: newUser })
         }
