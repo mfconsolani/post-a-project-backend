@@ -13,6 +13,8 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+//TODO
+//likesCount has to be an array of userId
 model Project {
   id  Int @id @default(autoincrement())
   title String

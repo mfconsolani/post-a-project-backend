@@ -33,7 +33,8 @@ authRouter.post('/local/login',
                 success: true,
                 message: "Successful login",
                 userId: userData.id,
-                userEmail: userData.email
+                userEmail: userData.email,
+                profile: userData.profileType
             })
         } catch (err: any) {
             Logger.error(err)
@@ -44,11 +45,13 @@ authRouter.post('/local/login',
 
 authRouter.post('/local/signup', async (req: Request, res: Response) => {
     const { username, email, password } = req.body
+    // Logger.info(req.body)
     try {
         const emailAlreadyExists = await doesUserExists(email)
+        // Logger.info(emailAlreadyExists)
         if (emailAlreadyExists && emailAlreadyExists.email) {
             res.status(409).json({ success: false, message: "Email already in use" })
-        } else if (emailAlreadyExists && !emailAlreadyExists.email) {
+        } else if (!emailAlreadyExists) {
             const newUser = await createNewUser(email, password, username)
             res.status(201).json({ success: true, message: newUser })
         }
