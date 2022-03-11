@@ -8,27 +8,45 @@ const rolesRouter = Router()
 rolesRouter.get('/', async (req: Request, res: Response) => {
     try {
         const listRoles = await prisma.roles.findMany()
-        res.status(200).send(listRoles)        
+        res.status(200).send(listRoles)
     } catch (err) {
         res.status(400).send({
-            success: false, 
-            message: "Error when retrieving list of roles in database", 
-            error: err})
+            success: false,
+            message: "Error when retrieving list of roles in database",
+            error: err
+        })
     }
 })
 
-//TODO
-//Post new skill
-// skillsRouter.post('/', async (req: Request, res: Response) => {
-//     try {
-//         // const listSkills = await prisma.skills.findMany()
-//         // res.status(200).send(listSkills)        
-//     } catch (err) {
-//     //     res.status(400).send({
-//     //         success: false, 
-//     //         message: "Error when retrieving list of skills in database", 
-//     //         error: err})
-//     // }
-// })
+rolesRouter.post('/', async (req: Request, res: Response) => {
+    const { role } = req.body
+    try {
+        const findRole = await prisma.roles.findUnique({
+            where: {
+                role: role
+            }
+        })
+        if (findRole !== null) {
+            res.status(401).send({ success: false, message: "Role already registered in database" })
+        } else if (findRole === null) {
+            const createRole = await prisma.roles.create({
+                data: {
+                    role: role
+                }
+            })
+            res.status(200).send({
+                success: true,
+                message: "Role created successfully",
+                payload: createRole
+            })
+        }
+    } catch (err) {
+        res.status(400).send({
+            success: false,
+            message: "Error when creating new role in database",
+            error: err
+        })
+    }
+})
 
 export default rolesRouter
