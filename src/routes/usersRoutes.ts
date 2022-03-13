@@ -41,7 +41,8 @@ usersRouter.get('/:id', async (req: Request, res: Response) => {
                 username: true,
                 email: true,
                 role: true,
-                profileType: true
+                profileType: true,
+                likedProjects: true
             }
         })
         res.status(200).send({ success: true, message: findOneUser ?? "User doesn't exist" })

@@ -32,13 +32,21 @@ projectRouter.get('/:id', async (req: Request, res: Response) => {
                 skill: true
             }
         })
-        res.status(200).send({ success: true, message: findOneProject })
+        if (!findOneProject){
+            res.status(200).send({ success: false, message: "Project doesn't exists" })
+        } else {
+            res.status(200).send({ success: true, message: "Project found", payload: findOneProject })
+        }
     } catch (error) {
         const isPrismaError = logPrismaError(error)
         res.status(404).send({ success: false, error: isPrismaError || error })
     }
 });
 
+//TODO
+//After modifying the database schemas, project put is no recognizing duplicates. Fix that shit
+
+//Publish a brand new project
 projectRouter.post('/', async (req: Request, res: Response) => {
     const { title, company, body, role, skill, duration, expiresBy, likesCount, location, projectOwner } = req.body
     try {
@@ -51,7 +59,8 @@ projectRouter.post('/', async (req: Request, res: Response) => {
                 skill: { connect: { skill } },
                 duration,
                 expiresBy,
-                likesCount,
+                likesCount: 0,
+                // likesRegistered: undefined,
                 location,
                 projectOwner: {connect: { companyEmail: projectOwner}}
             }
@@ -63,6 +72,11 @@ projectRouter.post('/', async (req: Request, res: Response) => {
     }
 });
 
+
+//TODO
+// Implement the same logic for roles as in with skills to check if update is required and update it if
+// it comes to it
+// This endpoint should only be available for COMPANY profile types and checking id in request previously
 projectRouter.put('/:id', async (req: Request, res: Response) => {
     const { body } = req
     try {
@@ -89,10 +103,11 @@ projectRouter.put('/:id', async (req: Request, res: Response) => {
                     company: body.company || undefined,
                     body: body.body || undefined,
                     role: (!!body.role ? { connect: { role: body.role } } : undefined),
-                    skill: (!!body.skill ? { connect: { skill: body.skill } } : undefined),
+                    skill: (!!body.skill ? { connect: body.skill.map((elem:any) => {return {skill: elem }}) } : undefined),
                     duration: body.duration || undefined,
                     expiresBy: body.expiresBy || undefined,
                     likesCount: body.likesCount || undefined,
+                    // likesRegistered: body.likesRegistered || undefined,
                     location: body.location || undefined
                 }
             })
@@ -104,6 +119,37 @@ projectRouter.put('/:id', async (req: Request, res: Response) => {
     }
 });
 
+
+//TODO
+//Edpoint to like and unlike a project by a user
+
+projectRouter.post('/like/:id', async (req: Request, res: Response) => {
+    const { id } = req.params
+    const { like } = req.query
+    const { userId } = req.body
+    console.log(id, like, userId)
+    try {
+        const updateProject = await prisma.project.update({
+            where: {
+                id: parseInt(req.params.id)
+            },
+            data: {
+                likesRegistered: (like === "true" ? { connect: { id: userId  } } : { disconnect: { id: userId  } })
+                // likesRegistered: { connect: { id: userId  } }
+            },
+            include: {
+                likesRegistered: true
+            }
+        })
+
+        res.status(200).send(updateProject)
+
+    } catch (err) {
+
+    }
+
+
+})
 
 projectRouter.delete('/:id', async (req: Request, res: Response) => {
     const { id } = req.params
