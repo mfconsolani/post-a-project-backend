@@ -12,7 +12,7 @@ export const doesUserExists = async (email: string) => {
                 email: email
             }
         })
-        console.log(user)
+        // console.log(user)
         return user || false
     } catch (err: any) {
         throw err
