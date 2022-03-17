@@ -45,6 +45,7 @@ projectRouter.get('/:id', async (req: Request, res: Response) => {
 
 //TODO
 //After modifying the database schemas, project put is no recognizing duplicates. Fix that shit
+//Not being able to create a project with one or more skills
 
 //Publish a brand new project
 projectRouter.post('/', async (req: Request, res: Response) => {
