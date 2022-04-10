@@ -11,7 +11,17 @@ projectRouter.get('/', async (_req: Request, res: Response) => {
         const findAllProjects = await prisma.project.findMany({
             include: {
                 skill: true,
-                role: true
+                role: true,
+                likesRegistered: {
+                    select: {
+                        id: true
+                    }
+                },
+                applicationsRegistered: {
+                    select: {
+                        id: true
+                    }
+                }
             }
         })
         res.status(200).send({ success: true, data: findAllProjects })
@@ -130,7 +140,7 @@ projectRouter.post('/like/:id', async (req: Request, res: Response) => {
     const { userId } = req.body
     // console.log(id, like, userId)
     try {
-        const updateProject = await prisma.project.update({
+        let updateProject = await prisma.project.update({
             where: {
                 id: parseInt(req.params.id)
             },
@@ -140,10 +150,22 @@ projectRouter.post('/like/:id', async (req: Request, res: Response) => {
             select: {
                 _count: {
                     select: { likesRegistered: true }
+                },
+                likesRegistered: {
+                    select: { id: true }
                 }
             }
         })
-        res.status(200).send({ success: true, payload: updateProject })
+        Object.assign(updateProject, { isLiked: updateProject.likesRegistered.some(elem => elem.id === userId) })
+        res.status(200).send({
+            success: true,
+            payload: {
+                likesCount: updateProject._count.likesRegistered || 0,
+                //@ts-ignore
+                isLiked: updateProject.isLiked,
+                likesRegistered: updateProject.likesRegistered
+            },
+        })
     } catch (err) {
         res.status(404).send({ success: false, message: "Failed to like or unlike project", error: err })
     }
@@ -161,6 +183,71 @@ projectRouter.get('/like/:id', async (req: Request, res: Response) => {
                     select: { likesRegistered: true }
                 },
                 likesRegistered: {
+                    select: {
+                        id: true
+                    }
+                }
+            }
+        })
+        res.status(200).send({ success: true, payload: getProjectCount })
+    } catch (err) {
+        res.status(404).send({ success: false, message: "Failed to get likes count for this project", error: err })
+    }
+})
+
+//TODO
+//Edpoint to apply and discard a project by a user
+//must verify that the user applying/discarding the project has a token with their corresponding id 
+projectRouter.post('/apply/:id', async (req: Request, res: Response) => {
+    const { id } = req.params
+    const { apply } = req.query
+    const { userId } = req.body
+
+    try {
+        const updateProject = await prisma.project.update({
+            where: {
+                id: parseInt(req.params.id)
+            },
+            data: {
+                applicationsRegistered: (apply === "true" ? { connect: { id: userId } } : { disconnect: { id: userId } })
+            },
+            select: {
+                _count: {
+                    select: { applicationsRegistered: true }
+                },
+                title: true,
+                applicationsRegistered: {
+                    select: { id: true }
+                }
+            }
+        })
+        res.status(200).send({
+            success: true,
+            payload: {
+                applicationsCount: updateProject._count.applicationsRegistered || 0,
+                isApplied: updateProject.applicationsRegistered.some(elem => elem.id === userId),
+                applicationsRegistered: updateProject.applicationsRegistered,
+                projectTitle: updateProject.title
+            }
+        })
+    } catch (err) {
+        console.log(err)
+        res.status(404).send({ success: false, message: "Failed to apply or discard project", error: err })
+    }
+})
+
+//Get initial likeCount
+projectRouter.get('/apply/:id', async (req: Request, res: Response) => {
+    try {
+        const getProjectCount = await prisma.project.findUnique({
+            where: {
+                id: parseInt(req.params.id)
+            },
+            select: {
+                _count: {
+                    select: { applicationsRegistered: true }
+                },
+                applicationsRegistered: {
                     select: {
                         id: true
                     }
