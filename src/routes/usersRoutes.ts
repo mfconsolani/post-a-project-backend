@@ -19,7 +19,7 @@ usersRouter.get("/", async (req: Request, res: Response) => {
                 profileType: true
             }
         })
-        res.status(200).send({ success: true, message: getAllUsers })
+        res.status(200).send({ success: true, payload: getAllUsers })
     } catch (err) {
         res.status(400).send({
             success: false,
