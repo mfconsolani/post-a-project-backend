@@ -7,7 +7,7 @@ const usersRouter = Router()
 //Add permision checker: only admin roles authorized
 //Add JWT authentication
 
-//find all users
+//find all users with basic info
 usersRouter.get("/", async (req: Request, res: Response) => {
     try {
         const getAllUsers = await prisma.user.findMany({
@@ -56,5 +56,31 @@ usersRouter.get('/:id', async (req: Request, res: Response) => {
         })
     }
 })
+
+//find all users with extended info
+usersRouter.get("/candidates/extended", async (req: Request, res: Response) => {
+    try {
+        const getAllUsers = await prisma.user.findMany({
+            select: {
+                id: true,
+                username: true,
+                email: true,
+                role: true,
+                profileType: true,
+                profile: {
+                    include: {skills: true}
+                }
+            }
+        })
+        res.status(200).send({ success: true, payload: getAllUsers })
+    } catch (err) {
+        res.status(400).send({
+            success: false,
+            error: err,
+            message: "Error when getting all users"
+        })
+    }
+})
+
 
 export default usersRouter;
