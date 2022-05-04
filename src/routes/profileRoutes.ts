@@ -99,12 +99,14 @@ profileRouter.put('/company/:id', async (req: Request, res: Response) => {
     }
 })
 
-//post profile data for user profiles
+//post or updates profile data for user profiles
 profileRouter.post('/user/:id', async (req: Request, res: Response) => {
     let { id } = req.params
     const parsedId = parseInt(id)
     const { email, firstName, lastName, birthday, phone, city, description, country, skills } = req.body
-
+    const mappedSkills = skills.map((skill:any) =>  {
+        return {"skill": skill.value}
+    })
     try {
         const findUser = await prisma.user.findFirst({
             where: {
@@ -121,10 +123,11 @@ profileRouter.post('/user/:id', async (req: Request, res: Response) => {
                 userEmail: email
             }, select: {
                 id: true,
-                userEmail: true
+                userEmail: true,
+                skills: {select: {skill: true}}
             }
         })
-
+        // console.log("findUser", findUser, "findProfile", findProfile)
         if (findUser && !findProfile) {
             const createProfile = await prisma.userProfile.create({
                 data: {
@@ -132,17 +135,32 @@ profileRouter.post('/user/:id', async (req: Request, res: Response) => {
                     firstName: firstName,
                     lastName: lastName,
                     birthday: birthday,
-                    phoneNumber: phone,
+                    phoneNumber: parseInt(phone),
                     city: city,
                     country: country,
                     description: description,
-                    skills: { connect: skills }
+                    skills: { connect: mappedSkills }
                 }
             })
-
-            res.status(201).send({ success: true, message: createProfile })
-        } else {
-            res.status(400).send({ success: false, message: "User not registered or profile already registered" })
+            res.status(201).send({ success: true, payload: createProfile, message: "Profile created" })
+        } else if (findUser && findProfile) {
+            const updateProfile = await prisma.userProfile.update({
+                where: {userEmail: email},
+                data: {
+                    firstName: firstName,
+                    lastName: lastName,
+                    birthday: birthday,
+                    phoneNumber: parseInt(phone),
+                    city: city,
+                    country: country,
+                    description: description,
+                    skills: { disconnect: findProfile.skills, connect: mappedSkills }
+                },
+                include: {
+                    skills: true
+                }
+            })
+            res.status(201).send({ success: true, payload: updateProfile, message: "Profile updated" })
         }
 
     } catch (err) {
@@ -153,6 +171,7 @@ profileRouter.post('/user/:id', async (req: Request, res: Response) => {
 })
 
 //Put/replace profile data for user profiles
+//this is probably useless now given that this method is covered by the previos one
 profileRouter.put('/user/:id', async (req: Request, res: Response) => {
     const { body } = req
 

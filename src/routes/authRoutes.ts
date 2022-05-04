@@ -26,7 +26,7 @@ authRouter.post('/local/login',
             refreshTokenList.push(jwtTokens.refreshToken)
             // console.log(req.body.email)
             const userData = await doesUserExists(req.body.email)
-            // console.log(userData)
+            console.log(userData)
             userData && res.status(200).json({
                 accessToken: jwtTokens.accessToken,
                 refreshToken: jwtTokens.refreshToken,
@@ -34,7 +34,8 @@ authRouter.post('/local/login',
                 message: "Successful login",
                 userId: userData.id,
                 userEmail: userData.email,
-                profile: userData.profileType
+                profile: userData.profileType,
+                profileData: userData.profile
             })
         } catch (err: any) {
             Logger.error(err)
