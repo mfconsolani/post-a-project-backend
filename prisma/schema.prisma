@@ -37,6 +37,8 @@ model Roles {
   id  Int @id @default(autoincrement())
   role String @unique
   roleInPost Project[]
+  rolesInUser UserProfile[]
+
 }
 
 model Skills {
@@ -73,6 +75,7 @@ model UserProfile {
   country String?
   description String?
   skills Skills[]
+  roles Roles[]
 }
 
 model Company {

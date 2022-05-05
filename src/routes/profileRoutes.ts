@@ -103,10 +103,14 @@ profileRouter.put('/company/:id', async (req: Request, res: Response) => {
 profileRouter.post('/user/:id', async (req: Request, res: Response) => {
     let { id } = req.params
     const parsedId = parseInt(id)
-    const { email, firstName, lastName, birthday, phone, city, description, country, skills } = req.body
+    const { email, firstName, lastName, birthday, phone, city, description, country, skills, roles } = req.body
     const mappedSkills = skills.map((skill:any) =>  {
         return {"skill": skill.value}
     })
+    const mappedRoles = roles.map((role:any) =>  {
+        return {"role": role.value}
+    })
+    console.log(mappedRoles, mappedSkills)
     try {
         const findUser = await prisma.user.findFirst({
             where: {
@@ -124,7 +128,8 @@ profileRouter.post('/user/:id', async (req: Request, res: Response) => {
             }, select: {
                 id: true,
                 userEmail: true,
-                skills: {select: {skill: true}}
+                skills: {select: {skill: true}},
+                roles: {select: {role: true}}
             }
         })
         // console.log("findUser", findUser, "findProfile", findProfile)
@@ -139,7 +144,8 @@ profileRouter.post('/user/:id', async (req: Request, res: Response) => {
                     city: city,
                     country: country,
                     description: description,
-                    skills: { connect: mappedSkills }
+                    skills: { connect: mappedSkills },
+                    roles: { connect: mappedRoles }
                 }
             })
             res.status(201).send({ success: true, payload: createProfile, message: "Profile created" })
@@ -154,10 +160,12 @@ profileRouter.post('/user/:id', async (req: Request, res: Response) => {
                     city: city,
                     country: country,
                     description: description,
-                    skills: { disconnect: findProfile.skills, connect: mappedSkills }
+                    skills: { disconnect: findProfile.skills, connect: mappedSkills },
+                    roles: { disconnect: findProfile.roles, connect: mappedRoles }
                 },
                 include: {
-                    skills: true
+                    skills: true,
+                    roles: true
                 }
             })
             res.status(201).send({ success: true, payload: updateProfile, message: "Profile updated" })

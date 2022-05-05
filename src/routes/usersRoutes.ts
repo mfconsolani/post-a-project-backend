@@ -68,7 +68,10 @@ usersRouter.get("/candidates/extended", async (req: Request, res: Response) => {
                 role: true,
                 profileType: true,
                 profile: {
-                    include: {skills: true}
+                    include: {
+                        skills: true,
+                        roles: true
+                    },
                 }
             }
         })
