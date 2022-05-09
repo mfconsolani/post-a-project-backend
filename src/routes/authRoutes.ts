@@ -4,6 +4,7 @@ import { createNewUser, doesUserExists } from "../authentication/authHelpers";
 import Logger from "../middlewares/winstonLoggerMiddleware";
 import { getAccessToken, SECRET_ACCESS_TOKEN, SECRET_ACCESS_TOKEN_EXPIRATION, SECRET_REFRESH_TOKEN } from "../middlewares/authenticationJwt";
 import * as jwt from 'jsonwebtoken'
+import { ProfileType } from ".prisma/client";
 
 
 //TODO
@@ -45,7 +46,7 @@ authRouter.post('/local/login',
 
 
 authRouter.post('/local/signup', async (req: Request, res: Response) => {
-    const { username, email, password } = req.body
+    const { username, email, password, profileType } = req.body
     // Logger.info(req.body)
     try {
         const emailAlreadyExists = await doesUserExists(email)
@@ -53,12 +54,12 @@ authRouter.post('/local/signup', async (req: Request, res: Response) => {
         if (emailAlreadyExists && emailAlreadyExists.email) {
             res.status(409).json({ success: false, message: "Email already in use" })
         } else if (!emailAlreadyExists) {
-            const newUser = await createNewUser(email, password, username)
+            const newUser = await createNewUser(email, password, profileType, username)
             res.status(201).json({ success: true, message: newUser })
         }
     } catch (err: any) {
-        Logger.error(err)
-        res.status(400).send({ success: false, message: err })
+        Logger.error({ success: false, message: err })
+        res.status(400).send({ success: false, message: "Error occurred when signing up" })
     }
 })
 
