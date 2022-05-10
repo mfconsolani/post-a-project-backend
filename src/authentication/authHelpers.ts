@@ -26,8 +26,24 @@ export const doesUserExists = async (email: string) => {
                 }
             }
         })
-        // console.log(user)
-        return user || false
+
+        const company = await prisma.company.findUnique({
+            where: {
+                email: email
+            }, include: {
+                profile: {
+                    select: {
+                        industry: true,
+                        phoneNumber: true,
+                        employees: true,
+                        description: true,
+                        country: true,
+                    }
+                }
+            }
+        })
+        // console.log(company)
+        return (user || company) || false
     } catch (err: any) {
         throw err
     }
@@ -56,7 +72,8 @@ export const createNewUser = async (email: string, password: string, profileType
                 }, select: {
                     email: true,
                     id: true,
-                    username: (username ? true : false)
+                    username: (username ? true : false),
+                    profileType: true
                 }
             })
             console.log(user)
@@ -70,13 +87,14 @@ export const createNewUser = async (email: string, password: string, profileType
                 }, select: {
                     email: true,
                     id: true,
-                    name: (username ? true : false)
+                    name: (username ? true : false),
+                    profileType: true
                 }
             })
             console.log(company)
             return company
         } else {
-            throw new Error("Error occurred when signing up")
+            return new Error("Error occurred when signing up")
         }
     } catch (err: any) {
         throw err

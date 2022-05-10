@@ -55,7 +55,8 @@ authRouter.post('/local/signup', async (req: Request, res: Response) => {
             res.status(409).json({ success: false, message: "Email already in use" })
         } else if (!emailAlreadyExists) {
             const newUser = await createNewUser(email, password, profileType, username)
-            res.status(201).json({ success: true, message: newUser })
+            // console.log("newUser", newUser)
+            res.status(201).json({ success: true, payload: newUser })
         }
     } catch (err: any) {
         Logger.error({ success: false, message: err })
