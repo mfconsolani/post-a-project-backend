@@ -16,9 +16,8 @@ profileRouter.post('/company/:id', async (req: Request, res: Response) => {
     const { email, industry, phone, employees, description, country } = req.body
 
     try {
-        const findCompany = await prisma.company.findFirst({
+        const findCompany = await prisma.company.findUnique({
             where: {
-                id: parsedId,
                 email: email
             }, select: {
                 id: true,
@@ -26,8 +25,12 @@ profileRouter.post('/company/:id', async (req: Request, res: Response) => {
                 profileType: true
             }
         })
-
-        const findProfile = await prisma.companyProfile.findFirst(email)
+        const findProfile = await prisma.companyProfile.findUnique({
+            where: {
+                companyEmail: email
+            }
+        })
+        console.log("findCompany", findCompany, "findProfile", findProfile)
 
         if (findCompany && !findProfile) {
             const createProfile = await prisma.companyProfile.create({
