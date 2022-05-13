@@ -45,10 +45,29 @@ profileRouter.post('/company/:id', async (req: Request, res: Response) => {
             })
 
             res.status(201).send({ success: true, message: createProfile })
-        } else {
-            res.status(400).send({ success: false, message: "Company not registered or profile already registered" })
-        }
+        } else if (findCompany && findProfile) {
+            const updateProfile = await prisma.companyProfile.update({
+                where: {companyEmail: email},
+                data: {
+                    industry: industry,
+                    phoneNumber: phone,
+                    employees: employees,
+                    country: country,
+                    description: description
+                },
+                // include: {
+                //     skills: true,
+                //     roles: true
+                // }
+            })
 
+            // industry: body.industry || undefined,
+            // phoneNumber: body.phoneNumber || undefined,
+            // employees: body.employees || undefined,
+            // description: body.description || undefined,
+            // country: body.country || undefined
+            res.status(201).send({ success: true, payload: updateProfile, message: "Profile updated" })
+        }
     } catch (err) {
         Logger.error(err)
         res.status(404).send({ success: false, error: err })
@@ -56,6 +75,7 @@ profileRouter.post('/company/:id', async (req: Request, res: Response) => {
 })
 
 //Put/replace profile data for company profiles
+//this will become probably useless given that this utility will be replaced by the post method
 profileRouter.put('/company/:id', async (req: Request, res: Response) => {
     const { body } = req
 
