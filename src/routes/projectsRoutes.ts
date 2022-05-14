@@ -59,27 +59,33 @@ projectRouter.get('/:id', async (req: Request, res: Response) => {
 
 //Publish a brand new project
 projectRouter.post('/', async (req: Request, res: Response) => {
-    const { title, company, body, role, skill, duration, expiresBy, likesCount, location, projectOwner } = req.body
+    const { title, company, body, roles, skills, duration, expiresBy, likesCount, location, owner } = req.body
+    const mappedSkills = skills.map((skill:any) =>  {
+        return {"skill": skill.value}
+    })
+    const mappedRoles = roles.map((role:any) =>  {
+        return {"role": role.value}
+    })
     try {
         const postProject = await prisma.project.create({
             data: {
                 title,
-                company,
+                company: company || owner,
                 body,
-                role: { connect: { role } },
-                skill: { connect: { skill } },
+                role: { connect: mappedRoles },
+                skill: { connect: mappedSkills },
                 duration,
                 expiresBy,
                 likesCount: 0,
                 // likesRegistered: undefined,
                 location,
-                projectOwner: { connect: { companyEmail: projectOwner } }
+                projectOwner: { connect: { companyEmail: owner } }
             }
         })
-        res.status(201).send({ success: true, postProject })
+        res.status(201).send({ success: true, payload: postProject, message: "Project created successfully" })
     } catch (error: any) {
         const isPrismaError = logPrismaError(error)
-        res.status(404).send({ success: false, error: isPrismaError || error })
+        res.status(404).send({ success: false, error: isPrismaError || error, message: "Error 404" })
     }
 });
 
