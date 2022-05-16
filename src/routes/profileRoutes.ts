@@ -13,7 +13,7 @@ const profileRouter = Router();
 profileRouter.post('/company/:id', async (req: Request, res: Response) => {
     let { id } = req.params
     const parsedId = parseInt(id)
-    const { email, industry, phone, employees, description, country } = req.body
+    const { email, industry, phoneNumber, employees, description, country } = req.body
 
     try {
         const findCompany = await prisma.company.findUnique({
@@ -37,7 +37,7 @@ profileRouter.post('/company/:id', async (req: Request, res: Response) => {
                 data: {
                     company: { connect: { email } },
                     industry: industry,
-                    phoneNumber: phone,
+                    phoneNumber: phoneNumber,
                     employees: employees,
                     description: description,
                     country: country
@@ -50,7 +50,7 @@ profileRouter.post('/company/:id', async (req: Request, res: Response) => {
                 where: {companyEmail: email},
                 data: {
                     industry: industry,
-                    phoneNumber: phone,
+                    phoneNumber: phoneNumber,
                     employees: employees,
                     country: country,
                     description: description
@@ -169,6 +169,10 @@ profileRouter.post('/user/:id', async (req: Request, res: Response) => {
                     description: description,
                     skills: { connect: mappedSkills },
                     roles: { connect: mappedRoles }
+                },
+                include: {
+                    skills: true,
+                    roles: true
                 }
             })
             res.status(201).send({ success: true, payload: createProfile, message: "Profile created" })
