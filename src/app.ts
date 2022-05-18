@@ -6,6 +6,7 @@ import passport from "passport";
 import { LocalStrategy } from './authentication/localStrategy';
 import cors from 'cors'
 
+
 dotenv.config()
 
 const app = express()

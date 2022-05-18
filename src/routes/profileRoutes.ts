@@ -30,14 +30,15 @@ profileRouter.post('/company/:id', async (req: Request, res: Response) => {
                 companyEmail: email
             }
         })
-        console.log("findCompany", findCompany, "findProfile", findProfile)
+        // console.log("findCompany", findCompany, "findProfile", findProfile)
 
         if (findCompany && !findProfile) {
+            // console.log(parseInt(phoneNumber))
             const createProfile = await prisma.companyProfile.create({
                 data: {
                     company: { connect: { email } },
                     industry: industry,
-                    phoneNumber: phoneNumber,
+                    phoneNumber: parseInt(phoneNumber),
                     employees: employees,
                     description: description,
                     country: country
@@ -50,7 +51,7 @@ profileRouter.post('/company/:id', async (req: Request, res: Response) => {
                 where: {companyEmail: email},
                 data: {
                     industry: industry,
-                    phoneNumber: phoneNumber,
+                    phoneNumber: parseInt(phoneNumber),
                     employees: employees,
                     country: country,
                     description: description
@@ -133,7 +134,7 @@ profileRouter.post('/user/:id', async (req: Request, res: Response) => {
     const mappedRoles = roles.map((role:any) =>  {
         return {"role": role.value}
     })
-    console.log(mappedRoles, mappedSkills)
+    // console.log(mappedRoles, mappedSkills)
     try {
         const findUser = await prisma.user.findFirst({
             where: {
