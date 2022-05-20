@@ -2,16 +2,50 @@ import bcrypt from 'bcrypt'
 import { prisma } from '../db';
 import Logger from '../middlewares/winstonLoggerMiddleware';
 
+
+//TODO
+//CreateNewUser function does not adapt to the new user schema. Fix
 export const doesUserExists = async (email: string) => {
     try {
         const user = await prisma.user.findUnique({
             where: {
                 email: email
+            }, include: {
+                profile: {
+                    select: {
+                        firstName: true,
+                        lastName: true,
+                        birthday: true,
+                        phoneNumber: true,
+                        city: true,
+                        country: true,
+                        description: true,
+                        skills: true,
+                        roles: true
+                    }
+                }
             }
         })
-        return user || false
+
+        const company = await prisma.company.findUnique({
+            where: {
+                email: email
+            }, include: {
+                profile: {
+                    select: {
+                        industry: true,
+                        phoneNumber: true,
+                        employees: true,
+                        description: true,
+                        country: true,
+                    }
+                }
+            }
+        })
+        // console.log(company)
+        return (user || company) || false
     } catch (err: any) {
-        return err
+        throw err
     }
 }
 
@@ -22,28 +56,48 @@ export const ashtonHasher = (password: string): string => {
 export const isValidPassword = async (password: string, userPassword: string) => {
     try {
         return await bcrypt.compare(password, userPassword)
-    } catch (err) {
-        return err
+    } catch (err: any) {
+        throw err
     }
 }
 
-export const createNewUser = async (email: string, password: string, username?: string) => {
-
+export const createNewUser = async (email: string, password: string, profileType: string, username?: string) => {
     try {
-        const user = await prisma.user.create({
-            data: {
-                email: email,
-                username: username,
-                password: ashtonHasher(password)
-            }, select: {
-                email: true,
-                id: true,
-                username: (username ? true : undefined)
-            }
-        })
-        return user
+        if (profileType === "USER") {
+            const user = await prisma.user.create({
+                data: {
+                    email: email,
+                    username: (username ? username : undefined),
+                    password: ashtonHasher(password)
+                }, select: {
+                    email: true,
+                    id: true,
+                    username: (username ? true : false),
+                    profileType: true
+                }
+            })
+            console.log(user)
+            return user
+        } else if (profileType === "COMPANY") {
+            const company = await prisma.company.create({
+                data: {
+                    email: email,
+                    name: (username ? username : undefined),
+                    password: ashtonHasher(password)
+                }, select: {
+                    email: true,
+                    id: true,
+                    name: (username ? true : false),
+                    profileType: true
+                }
+            })
+            console.log(company)
+            return company
+        } else {
+            return new Error("Error occurred when signing up")
+        }
     } catch (err: any) {
-        return err
+        throw err
     }
 
 }

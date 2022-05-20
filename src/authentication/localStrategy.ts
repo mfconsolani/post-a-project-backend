@@ -17,7 +17,7 @@ export const LocalStrategy = new Local.Strategy(
         async (email, password, done) => {
             try {
                 const user = await doesUserExists(email)
-                const validPassword = await isValidPassword(password, user.password)                
+                const validPassword = user && await isValidPassword(password, user.password)
                 if (!user) {
                     return done(null, false)
                 }
@@ -27,6 +27,7 @@ export const LocalStrategy = new Local.Strategy(
                 return done(null, user.id)
             } catch (err: any) {
                 Logger.error(err)
+                console.log(err)
                 return err
             }
         })

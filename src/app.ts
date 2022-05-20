@@ -1,13 +1,16 @@
 import express from 'express';
 import morganMiddleware from './middlewares/morganMiddleware';
-import { projectRouter, authRouter, profileRouter, usersRouter, companyRouter } from './routes';
+import { projectRouter, authRouter, profileRouter, skillsRouter, usersRouter, companyRouter, rolesRouter } from './routes';
 import dotenv from 'dotenv';
 import passport from "passport";
 import { LocalStrategy } from './authentication/localStrategy';
+import cors from 'cors'
+
 
 dotenv.config()
 
 const app = express()
+app.use(cors())
 passport.use(LocalStrategy)
 app.use(express.json())
 app.use(morganMiddleware)
@@ -18,6 +21,9 @@ app.use('/api/auth', authRouter)
 app.use('/api/profile', profileRouter)
 app.use('/api/users', usersRouter)
 app.use('/api/company', companyRouter)
+app.use('/api/skills', skillsRouter)
+app.use('/api/roles', rolesRouter)
+
 
 
 app.listen(process.env.PORT || 8080, () => {

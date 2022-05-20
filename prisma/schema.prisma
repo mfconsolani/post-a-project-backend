@@ -4,6 +4,8 @@
 //TODO
 //Migrate schema
 
+
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,8 +13,11 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
+//TODO
+//likesCount has to be an array of userId
 model Project {
   id  Int @id @default(autoincrement())
   title String
@@ -24,6 +29,8 @@ model Project {
   createdAt DateTime @default(now())
   expiresBy DateTime
   likesCount Int 
+  likesRegistered User[] @relation(name: "LikesRegistered" )
+  applicationsRegistered User[] @relation(name: "ApplicationsRegistered" ) 
   location  String
   projectOwner CompanyProfile @relation(fields: [owner], references: [companyEmail])
   owner String
@@ -33,6 +40,8 @@ model Roles {
   id  Int @id @default(autoincrement())
   role String @unique
   roleInPost Project[]
+  rolesInUser UserProfile[]
+
 }
 
 model Skills {
@@ -53,6 +62,8 @@ model User {
   role SystemRole @default(USER)
   profileType ProfileType @default(USER)
   profile UserProfile? 
+  likedProjects Project[] @relation(name: "LikesRegistered" )
+  appliedProjects Project[] @relation(name: "ApplicationsRegistered" )
 }
 
 model UserProfile {
@@ -67,6 +78,7 @@ model UserProfile {
   country String?
   description String?
   skills Skills[]
+  roles Roles[]
 }
 
 model Company {
