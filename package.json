@@ -22,7 +22,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "NODE_ENV=production node ./dist/app.js",
+    "start": "NODE_ENV=production node ./dist/src/app.js",
     "dev": "NODE_ENV=development ts-node-dev --respawn ./src/app.ts",
     "build": "tsc -p ."
   },
