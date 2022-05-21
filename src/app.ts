@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import morganMiddleware from './middlewares/morganMiddleware';
 import { projectRouter, authRouter, profileRouter, skillsRouter, usersRouter, companyRouter, rolesRouter } from './routes';
 import dotenv from 'dotenv';
@@ -24,7 +24,9 @@ app.use('/api/company', companyRouter)
 app.use('/api/skills', skillsRouter)
 app.use('/api/roles', rolesRouter)
 
-
+app.get('/', (req: Request, res: Response) => {
+    res.status(200).send("Hello World!")
+})
 
 app.listen(process.env.PORT || 8080, () => {
     return console.log("App listening on port " + process.env.PORT, "- Enviroment: " + process.env.NODE_ENV)
