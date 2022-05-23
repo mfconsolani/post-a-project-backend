@@ -10,7 +10,9 @@ import cors from 'cors'
 dotenv.config()
 
 const app = express()
-app.use(cors())
+app.use(cors({
+    origin: process.env.ORIGIN_ULR_ALLOWED
+}))
 passport.use(LocalStrategy)
 app.use(express.json())
 app.use(morganMiddleware)

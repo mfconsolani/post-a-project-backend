@@ -27,7 +27,7 @@ authRouter.post('/local/login',
             refreshTokenList.push(jwtTokens.refreshToken)
             // console.log(req.body.email)
             const userData = await doesUserExists(req.body.email)
-            console.log(userData)
+            // console.log(userData)
             userData && res.status(200).json({
                 accessToken: jwtTokens.accessToken,
                 refreshToken: jwtTokens.refreshToken,

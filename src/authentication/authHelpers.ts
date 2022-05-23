@@ -76,7 +76,7 @@ export const createNewUser = async (email: string, password: string, profileType
                     profileType: true
                 }
             })
-            console.log(user)
+            // console.log(user)
             return user
         } else if (profileType === "COMPANY") {
             const company = await prisma.company.create({
@@ -91,7 +91,7 @@ export const createNewUser = async (email: string, password: string, profileType
                     profileType: true
                 }
             })
-            console.log(company)
+            // console.log(company)
             return company
         } else {
             return new Error("Error occurred when signing up")
