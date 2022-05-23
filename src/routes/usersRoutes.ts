@@ -48,7 +48,7 @@ usersRouter.get('/:id', async (req: Request, res: Response) => {
         res.status(200).send({ success: true, message: findOneUser ?? "User doesn't exist" })
     } catch (error) {
         const isPrismaError = logPrismaError(error)
-        console.log(error)
+        // console.log(error)
         res.status(404).send({
             success: false,
             error: isPrismaError || error,
