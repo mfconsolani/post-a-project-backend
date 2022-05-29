@@ -60,11 +60,11 @@ projectRouter.get('/:id', async (req: Request, res: Response) => {
 //Publish a brand new project
 projectRouter.post('/', async (req: Request, res: Response) => {
     const { title, company, body, roles, skills, duration, expiresBy, likesCount, location, owner } = req.body
-    const mappedSkills = skills.map((skill:any) =>  {
-        return {"skill": skill.value}
+    const mappedSkills = skills.map((skill: any) => {
+        return { "skill": skill.value }
     })
-    const mappedRoles = roles.map((role:any) =>  {
-        return {"role": role.value}
+    const mappedRoles = roles.map((role: any) => {
+        return { "role": role.value }
     })
     try {
         const postProject = await prisma.project.create({
@@ -136,44 +136,57 @@ projectRouter.put('/:id', async (req: Request, res: Response) => {
     }
 });
 
+projectRouter.get('/get/random/thing', async (req: Request, res: Response) => {
+    res.status(200).send({ message: "Hola" })
+})
 
 //TODO
 //Edpoint to like and unlike a project by a user
 //must verify that the user liking the project has a token with their corresponding id 
+//must also verify that the profile type is company
 projectRouter.post('/like/:id', async (req: Request, res: Response) => {
     const { id } = req.params
     const { like } = req.query
-    const { userId } = req.body
-    // console.log(id, like, userId)
-    try {
-        let updateProject = await prisma.project.update({
-            where: {
-                id: parseInt(req.params.id)
-            },
-            data: {
-                likesRegistered: (like === "true" ? { connect: { id: userId } } : { disconnect: { id: userId } })
-            },
-            select: {
-                _count: {
-                    select: { likesRegistered: true }
+    const { profileType, userId } = req.body.user
+    console.log("first log")
+    if (profileType === "USER") {
+    console.log("second log")
+        try {
+    console.log("second and a half log")
+
+            let updateProject = await prisma.project.update({
+                where: {
+                    id: parseInt(req.params.id)
                 },
-                likesRegistered: {
-                    select: { id: true }
+                data: {
+                    likesRegistered: (like === "true" ? { connect: { id: userId } } : { disconnect: { id: userId } })
+                },
+                select: {
+                    _count: {
+                        select: { likesRegistered: true }
+                    },
+                    likesRegistered: {
+                        select: { id: true }
+                    }
                 }
-            }
-        })
-        Object.assign(updateProject, { isLiked: updateProject.likesRegistered.some(elem => elem.id === userId) })
-        res.status(200).send({
-            success: true,
-            payload: {
-                likesCount: updateProject._count.likesRegistered || 0,
-                //@ts-ignore
-                isLiked: updateProject.isLiked,
-                likesRegistered: updateProject.likesRegistered
-            },
-        })
-    } catch (err) {
-        res.status(404).send({ success: false, message: "Failed to like or unlike project", error: err })
+            })
+            console.log("third log")
+            Object.assign(updateProject, { isLiked: updateProject.likesRegistered.some(elem => elem.id === userId) })
+            console.log("forth log")
+            res.status(200).send({
+                success: true,
+                payload: {
+                    likesCount: updateProject._count.likesRegistered || 0,
+                    //@ts-ignore
+                    isLiked: updateProject.isLiked,
+                    likesRegistered: updateProject.likesRegistered
+                },
+            })
+        } catch (err) {
+            res.status(404).send({ success: false, message: "Failed to like or unlike project", error: err })
+        }
+    } else {
+        res.status(405).send({ success: false, message: "Method not allowed for Company profiles" })
     }
 })
 
@@ -207,38 +220,44 @@ projectRouter.get('/like/:id', async (req: Request, res: Response) => {
 projectRouter.post('/apply/:id', async (req: Request, res: Response) => {
     const { id } = req.params
     const { apply } = req.query
-    const { userId } = req.body
+    // const { userId } = req.body
+    const { profileType, userId } = req.body.user
+    // console.log(userId)
 
-    try {
-        const updateProject = await prisma.project.update({
-            where: {
-                id: parseInt(req.params.id)
-            },
-            data: {
-                applicationsRegistered: (apply === "true" ? { connect: { id: userId } } : { disconnect: { id: userId } })
-            },
-            select: {
-                _count: {
-                    select: { applicationsRegistered: true }
+    if (profileType === "USER") {
+        try {
+            const updateProject = await prisma.project.update({
+                where: {
+                    id: parseInt(req.params.id)
                 },
-                title: true,
-                applicationsRegistered: {
-                    select: { id: true }
+                data: {
+                    applicationsRegistered: (apply === "true" ? { connect: { id: userId } } : { disconnect: { id: userId } })
+                },
+                select: {
+                    _count: {
+                        select: { applicationsRegistered: true }
+                    },
+                    title: true,
+                    applicationsRegistered: {
+                        select: { id: true }
+                    }
                 }
-            }
-        })
-        res.status(200).send({
-            success: true,
-            payload: {
-                applicationsCount: updateProject._count.applicationsRegistered || 0,
-                isApplied: updateProject.applicationsRegistered.some(elem => elem.id === userId),
-                applicationsRegistered: updateProject.applicationsRegistered,
-                projectTitle: updateProject.title
-            }
-        })
-    } catch (err) {
-        console.log(err)
-        res.status(404).send({ success: false, message: "Failed to apply or discard project", error: err })
+            })
+            res.status(200).send({
+                success: true,
+                payload: {
+                    applicationsCount: updateProject._count.applicationsRegistered || 0,
+                    isApplied: updateProject.applicationsRegistered.some(elem => elem.id === userId),
+                    applicationsRegistered: updateProject.applicationsRegistered,
+                    projectTitle: updateProject.title
+                }
+            })
+        } catch (err) {
+            console.log(err)
+            res.status(404).send({ success: false, message: "Failed to apply or discard project", error: err })
+        }
+    } else {
+        res.status(405).send({ success: false, message: "Method not allowed for Company profiles" })
     }
 })
 
