@@ -148,11 +148,9 @@ projectRouter.post('/like/:id', async (req: Request, res: Response) => {
     const { id } = req.params
     const { like } = req.query
     const { profileType, userId } = req.body.user
-    console.log("first log")
+
     if (profileType === "USER") {
-    console.log("second log")
         try {
-    console.log("second and a half log")
 
             let updateProject = await prisma.project.update({
                 where: {
@@ -170,9 +168,7 @@ projectRouter.post('/like/:id', async (req: Request, res: Response) => {
                     }
                 }
             })
-            console.log("third log")
             Object.assign(updateProject, { isLiked: updateProject.likesRegistered.some(elem => elem.id === userId) })
-            console.log("forth log")
             res.status(200).send({
                 success: true,
                 payload: {
@@ -220,9 +216,7 @@ projectRouter.get('/like/:id', async (req: Request, res: Response) => {
 projectRouter.post('/apply/:id', async (req: Request, res: Response) => {
     const { id } = req.params
     const { apply } = req.query
-    // const { userId } = req.body
     const { profileType, userId } = req.body.user
-    // console.log(userId)
 
     if (profileType === "USER") {
         try {
