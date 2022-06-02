@@ -65,6 +65,7 @@ model User {
   profile UserProfile? 
   likedProjects Project[] @relation(name: "LikesRegistered" )
   appliedProjects Project[] @relation(name: "ApplicationsRegistered" )
+  refreshToken String? 
 }
 
 model UserProfile {

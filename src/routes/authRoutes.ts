@@ -28,8 +28,9 @@ authRouter.post('/local/login',
             // console.log(req.body.email)
             const userData = await doesUserExists(req.body.email)
             // console.log(userData)
+            userData && res.cookie('jwt', jwtTokens.refreshToken, {httpOnly: true, maxAge: 24*60*60*1000})
             userData && res.status(200).json({
-                // accessToken: jwtTokens.accessToken,
+                accessToken: jwtTokens.accessToken,
                 // refreshToken: jwtTokens.refreshToken,
                 success: true,
                 message: "Successful login",

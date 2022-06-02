@@ -7,6 +7,10 @@ import { LocalStrategy } from './authentication/localStrategy';
 import cors from 'cors'
 
 
+//TODO
+//Add JWT tokens to DB so you can logout afterwards
+//add httpOnly and other configs to refreshtoken
+
 dotenv.config()
 
 const app = express()
