@@ -94,6 +94,7 @@ model Company {
   role SystemRole @default(USER)
   profileType ProfileType @default(COMPANY)
   profile CompanyProfile?
+  refreshToken String? 
 }
 
 model CompanyProfile {
