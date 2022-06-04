@@ -61,6 +61,31 @@ export const isValidPassword = async (password: string, userPassword: string) =>
     }
 }
 
+export const storeRefreshJWT = async (userData: any, refreshToken: any) => {
+    try {
+        if (userData && userData.profileType === "COMPANY") {
+            return await prisma.company.update({
+                where: {
+                    email: userData.email
+                }, data: {
+                    refreshToken: refreshToken
+                }
+            })
+        } else if (userData && userData.profileType === "USER") {
+            return await prisma.user.update({
+                where: {
+                    email: userData.email
+                }, data: {
+                    refreshToken: refreshToken
+                }
+            })
+        }
+    } catch (err) {
+        console.error(err)
+        return err
+    }
+}
+
 export const createNewUser = async (email: string, password: string, profileType: string, username?: string) => {
     try {
         if (profileType === "USER") {
@@ -76,7 +101,6 @@ export const createNewUser = async (email: string, password: string, profileType
                     profileType: true
                 }
             })
-            // console.log(user)
             return user
         } else if (profileType === "COMPANY") {
             const company = await prisma.company.create({
@@ -91,7 +115,6 @@ export const createNewUser = async (email: string, password: string, profileType
                     profileType: true
                 }
             })
-            // console.log(company)
             return company
         } else {
             return new Error("Error occurred when signing up")
@@ -99,5 +122,4 @@ export const createNewUser = async (email: string, password: string, profileType
     } catch (err: any) {
         throw err
     }
-
 }
