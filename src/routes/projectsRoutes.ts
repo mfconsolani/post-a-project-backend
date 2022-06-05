@@ -1,9 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { prisma, logPrismaError } from '../db';
 import { isNewData } from '../helpers/isNewData';
-//TODO
-// Delete project
-
+import { verifyToken } from '../middlewares/authenticationJwt';
 const projectRouter = Router()
 
 projectRouter.get('/', async (_req: Request, res: Response) => {
@@ -55,10 +53,9 @@ projectRouter.get('/:id', async (req: Request, res: Response) => {
 
 //TODO
 //After modifying the database schemas, project put is no recognizing duplicates. Fix that shit
-//Not being able to create a project with one or more skills
 
 //Publish a brand new project
-projectRouter.post('/', async (req: Request, res: Response) => {
+projectRouter.post('/',verifyToken, async (req: Request, res: Response) => {
     const { title, company, body, roles, skills, duration, expiresBy, likesCount, location, owner } = req.body
     const mappedSkills = skills.map((skill: any) => {
         return { "skill": skill.value }
@@ -94,7 +91,7 @@ projectRouter.post('/', async (req: Request, res: Response) => {
 // Implement the same logic for roles as in with skills to check if update is required and update it if
 // it comes to it
 // This endpoint should only be available for COMPANY profile types and checking id in request previously
-projectRouter.put('/:id', async (req: Request, res: Response) => {
+projectRouter.put('/:id',verifyToken, async (req: Request, res: Response) => {
     const { body } = req
     try {
         const isUpdatedRequired = await isNewData(req, async (arg: any) => {
@@ -136,15 +133,12 @@ projectRouter.put('/:id', async (req: Request, res: Response) => {
     }
 });
 
-projectRouter.get('/get/random/thing', async (req: Request, res: Response) => {
-    res.status(200).send({ message: "Hola" })
-})
 
 //TODO
 //Edpoint to like and unlike a project by a user
 //must verify that the user liking the project has a token with their corresponding id 
 //must also verify that the profile type is company
-projectRouter.post('/like/:id', async (req: Request, res: Response) => {
+projectRouter.post('/like/:id',verifyToken, async (req: Request, res: Response) => {
     const { id } = req.params
     const { like } = req.query
     const { profileType, userId } = req.body.user
@@ -213,7 +207,7 @@ projectRouter.get('/like/:id', async (req: Request, res: Response) => {
 //TODO
 //Edpoint to apply and discard a project by a user
 //must verify that the user applying/discarding the project has a token with their corresponding id 
-projectRouter.post('/apply/:id', async (req: Request, res: Response) => {
+projectRouter.post('/apply/:id',verifyToken, async (req: Request, res: Response) => {
     const { id } = req.params
     const { apply } = req.query
     const { profileType, userId } = req.body.user
@@ -255,7 +249,7 @@ projectRouter.post('/apply/:id', async (req: Request, res: Response) => {
     }
 })
 
-//Get initial likeCount
+//Get initial applyCount
 projectRouter.get('/apply/:id', async (req: Request, res: Response) => {
     try {
         const getProjectCount = await prisma.project.findUnique({
@@ -279,7 +273,7 @@ projectRouter.get('/apply/:id', async (req: Request, res: Response) => {
     }
 })
 
-projectRouter.delete('/:id', async (req: Request, res: Response) => {
+projectRouter.delete('/:id',verifyToken, async (req: Request, res: Response) => {
     const { id } = req.params
     try {
         const deleteOneProject = await prisma.project.delete({

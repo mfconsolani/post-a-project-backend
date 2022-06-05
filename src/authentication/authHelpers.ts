@@ -42,7 +42,6 @@ export const doesUserExists = async (email: string) => {
                 }
             }
         })
-        // console.log(company)
         return (user || company) || false
     } catch (err: any) {
         throw err

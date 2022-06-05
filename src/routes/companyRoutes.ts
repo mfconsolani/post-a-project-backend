@@ -1,5 +1,6 @@
 import { Request, Response, Router } from "express";
 import { prisma, logPrismaError } from '../db';
+import {verifyToken} from '../middlewares/authenticationJwt'
 
 const companyRouter = Router()
 
@@ -8,7 +9,7 @@ const companyRouter = Router()
 //Add JWT authentication
 
 //find all companies
-companyRouter.get("/", async (req: Request, res: Response) => {
+companyRouter.get("/",verifyToken, async (req: Request, res: Response) => {
     try {
         const getAllCompanies = await prisma.company.findMany({
             select: {
@@ -30,7 +31,7 @@ companyRouter.get("/", async (req: Request, res: Response) => {
 })
 
 //find one user
-companyRouter.get('/:id', async (req: Request, res: Response) => {
+companyRouter.get('/:id', verifyToken, async (req: Request, res: Response) => {
     try {
         const findOneCompany = await prisma.company.findUnique({
             where: {
@@ -47,7 +48,6 @@ companyRouter.get('/:id', async (req: Request, res: Response) => {
         res.status(200).send({ success: true, message: findOneCompany ?? "Company doesn't exist" })
     } catch (error) {
         const isPrismaError = logPrismaError(error)
-        // console.log(error)
         res.status(404).send({
             success: false,
             error: isPrismaError || error,

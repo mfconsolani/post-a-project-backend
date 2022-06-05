@@ -2,7 +2,7 @@ import { Router, Request, Response } from "express";
 import { prisma } from '../db';
 import Logger from "../middlewares/winstonLoggerMiddleware";
 import { isNewData } from '../helpers/isNewData'
-
+import {verifyToken} from '../middlewares/authenticationJwt'
 //TODO
 //Add validator to check if final user is a company or a user
 //Add JWT verification
@@ -10,7 +10,7 @@ import { isNewData } from '../helpers/isNewData'
 const profileRouter = Router();
 
 //Post new profile data for company profiles
-profileRouter.post('/company/:id', async (req: Request, res: Response) => {
+profileRouter.post('/company/:id',verifyToken, async (req: Request, res: Response) => {
     let { id } = req.params
     const parsedId = parseInt(id)
     const { email, industry, phoneNumber, employees, description, country } = req.body
@@ -30,10 +30,8 @@ profileRouter.post('/company/:id', async (req: Request, res: Response) => {
                 companyEmail: email
             }
         })
-        // console.log("findCompany", findCompany, "findProfile", findProfile)
 
         if (findCompany && !findProfile) {
-            // console.log(parseInt(phoneNumber))
             const createProfile = await prisma.companyProfile.create({
                 data: {
                     company: { connect: { email } },
@@ -56,17 +54,7 @@ profileRouter.post('/company/:id', async (req: Request, res: Response) => {
                     country: country,
                     description: description
                 },
-                // include: {
-                //     skills: true,
-                //     roles: true
-                // }
             })
-
-            // industry: body.industry || undefined,
-            // phoneNumber: body.phoneNumber || undefined,
-            // employees: body.employees || undefined,
-            // description: body.description || undefined,
-            // country: body.country || undefined
             res.status(201).send({ success: true, payload: updateProfile, message: "Profile updated" })
         }
     } catch (err) {
@@ -77,7 +65,7 @@ profileRouter.post('/company/:id', async (req: Request, res: Response) => {
 
 //Put/replace profile data for company profiles
 //this will become probably useless given that this utility will be replaced by the post method
-profileRouter.put('/company/:id', async (req: Request, res: Response) => {
+profileRouter.put('/company/:id',verifyToken, async (req: Request, res: Response) => {
     const { body } = req
 
     try {
@@ -124,7 +112,7 @@ profileRouter.put('/company/:id', async (req: Request, res: Response) => {
 })
 
 //post or updates profile data for user profiles
-profileRouter.post('/user/:id', async (req: Request, res: Response) => {
+profileRouter.post('/user/:id',verifyToken, async (req: Request, res: Response) => {
     let { id } = req.params
     const parsedId = parseInt(id)
     const { email, firstName, lastName, birthday, phone, city, description, country, skills, roles } = req.body
@@ -134,7 +122,6 @@ profileRouter.post('/user/:id', async (req: Request, res: Response) => {
     const mappedRoles = roles.map((role:any) =>  {
         return {"role": role.value}
     })
-    // console.log(mappedRoles, mappedSkills)
     try {
         const findUser = await prisma.user.findFirst({
             where: {
@@ -156,7 +143,6 @@ profileRouter.post('/user/:id', async (req: Request, res: Response) => {
                 roles: {select: {role: true}}
             }
         })
-        // console.log("findUser", findUser, "findProfile", findProfile)
         if (findUser && !findProfile) {
             const createProfile = await prisma.userProfile.create({
                 data: {
@@ -208,7 +194,7 @@ profileRouter.post('/user/:id', async (req: Request, res: Response) => {
 
 //Put/replace profile data for user profiles
 //this is probably useless now given that this method is covered by the previos one
-profileRouter.put('/user/:id', async (req: Request, res: Response) => {
+profileRouter.put('/user/:id',verifyToken, async (req: Request, res: Response) => {
     const { body } = req
 
     try {

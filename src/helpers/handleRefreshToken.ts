@@ -46,7 +46,7 @@ export const handleRefreshToken = async (req: Request, res: Response) => {
         (err: any, user: any) => {
             if (err || findUser.id !== user.userId) return res.status(403).send({
                 success: false,
-                message: "Access Forbidden"
+                message: "Access Forbidden or Token Expired"
             })
             const newAccessToken = jwt.sign({
                 userId: user.userId

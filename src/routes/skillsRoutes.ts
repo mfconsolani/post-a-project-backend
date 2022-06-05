@@ -1,5 +1,6 @@
 import { Request, Response, Router } from "express";
 import { prisma } from '../db';
+import { verifyToken } from "../middlewares/authenticationJwt";
 
 const skillsRouter = Router()
 
@@ -18,7 +19,7 @@ skillsRouter.get('/', async (req: Request, res: Response) => {
     }
 })
 
-skillsRouter.post('/', async (req: Request, res: Response) => {
+skillsRouter.post('/',verifyToken, async (req: Request, res: Response) => {
     const { skill } = req.body
     try {
         const findSkill = await prisma.skills.findUnique({
