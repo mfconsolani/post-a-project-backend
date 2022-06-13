@@ -24,7 +24,7 @@ authRouter.post('/local/login',
             const jwtTokens = getAccessToken({ userId: req.user })
             const userData = await doesUserExists(req.body.email)
             await storeRefreshJWT(userData, jwtTokens.refreshToken)
-            userData && res.cookie('jwt', jwtTokens.refreshToken, { httpOnly: true, maxAge: 24 * 60 * 60 * 1000, sameSite: "none" }) // secure: true
+            userData && res.cookie('jwt', jwtTokens.refreshToken, { httpOnly: true, maxAge: 24 * 60 * 60 * 1000, sameSite: "none", secure: true })
             userData && res.status(200).json({
                 accessToken: jwtTokens.accessToken,
                 success: true,

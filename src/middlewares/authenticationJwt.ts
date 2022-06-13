@@ -28,6 +28,7 @@ export const verifyToken = (req: Request, res: Response, next: NextFunction) => 
             next()
         })
     } else {
+        // console.log(authHeader)
         return res.status(401).send("Not authorized")
     }
 }

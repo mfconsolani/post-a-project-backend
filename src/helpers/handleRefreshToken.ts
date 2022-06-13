@@ -40,7 +40,6 @@ export const handleRefreshToken = async (req: Request, res: Response) => {
             }
         }
     })
-
     if (!findUser) return res.status(403).send({ success: false, message: "Access Forbidden" })
     jwt.verify(token, SECRET_REFRESH_TOKEN,
         (err: any, user: any) => {

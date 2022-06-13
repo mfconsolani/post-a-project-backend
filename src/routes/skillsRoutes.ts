@@ -28,7 +28,7 @@ skillsRouter.post('/',verifyToken, async (req: Request, res: Response) => {
             }
         })
         if (findSkill !== null) {
-            res.status(401).send({ success: false, message: "Skill already registered in database" })
+            res.status(400).send({ success: false, message: "Skill already registered in database" })
         } else if (findSkill === null) {
             const createSkill = await prisma.skills.create({
                 data: {

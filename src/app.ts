@@ -1,6 +1,6 @@
 import express, { Request, Response } from 'express';
 import morganMiddleware from './middlewares/morganMiddleware';
-// import {credentials} from './middlewares/credentials'
+import {credentials} from './middlewares/credentials'
 import { corsOptions } from './config/corsOptions';
 import { projectRouter, logoutRouter, authRouter, profileRouter, skillsRouter, usersRouter, companyRouter, rolesRouter } from './routes';
 import dotenv from 'dotenv';
@@ -20,7 +20,7 @@ import {verifyToken} from './middlewares/authenticationJwt';
 dotenv.config()
 
 const app = express()
-// app.use(credentials)
+app.use(credentials)
 app.use(cors(corsOptions))
 passport.use(LocalStrategy)
 app.use(express.json())
