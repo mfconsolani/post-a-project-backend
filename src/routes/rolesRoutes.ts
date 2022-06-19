@@ -1,6 +1,6 @@
 import { Request, Response, Router } from "express";
 import { prisma } from '../db';
-
+import { verifyToken } from "../middlewares/authenticationJwt";
 const rolesRouter = Router()
 
 //Add JWT validation
@@ -18,7 +18,7 @@ rolesRouter.get('/', async (req: Request, res: Response) => {
     }
 })
 
-rolesRouter.post('/', async (req: Request, res: Response) => {
+rolesRouter.post('/',verifyToken, async (req: Request, res: Response) => {
     const { role } = req.body
     try {
         const findRole = await prisma.roles.findUnique({
@@ -27,7 +27,7 @@ rolesRouter.post('/', async (req: Request, res: Response) => {
             }
         })
         if (findRole !== null) {
-            res.status(401).send({ success: false, message: "Role already registered in database" })
+            res.status(400).send({ success: false, message: "Role already registered in database" })
         } else if (findRole === null) {
             const createRole = await prisma.roles.create({
                 data: {

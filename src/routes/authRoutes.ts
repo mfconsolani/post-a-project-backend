@@ -1,22 +1,20 @@
 import { Router, Request, Response } from "express";
 import passport from "passport";
-import { createNewUser, doesUserExists } from "../authentication/authHelpers";
+import { createNewUser, doesUserExists, storeRefreshJWT } from "../authentication/authHelpers";
 import Logger from "../middlewares/winstonLoggerMiddleware";
 import { getAccessToken, SECRET_ACCESS_TOKEN, SECRET_ACCESS_TOKEN_EXPIRATION, SECRET_REFRESH_TOKEN } from "../middlewares/authenticationJwt";
 import * as jwt from 'jsonwebtoken'
+import { prisma } from '../db';
 import { ProfileType } from ".prisma/client";
-
+import { handleRefreshToken } from "../helpers/handleRefreshToken";
 
 //TODO
 //Add password regex validation
-//Determine if jwt-redis is better than jsonwebtoken for this app
-//Return signed token when creating new user
-//Fix bad practice of storing refreshTokenList in variable
-//Implement a token and refresh token black/white list (maybe in redis?)
 //Implement emergency loggout or token clear endpoint with right permissions (security meassure)
+//Change payload for JWT
+
 
 const authRouter = Router()
-let refreshTokenList: string[] = []
 
 authRouter.post('/local/login',
     passport.authenticate('local',
@@ -24,13 +22,11 @@ authRouter.post('/local/login',
     async (req: Request, res: Response) => {
         try {
             const jwtTokens = getAccessToken({ userId: req.user })
-            refreshTokenList.push(jwtTokens.refreshToken)
-            // console.log(req.body.email)
             const userData = await doesUserExists(req.body.email)
-            // console.log(userData)
+            await storeRefreshJWT(userData, jwtTokens.refreshToken)
+            userData && res.cookie('jwt', jwtTokens.refreshToken, { httpOnly: true, maxAge: 24 * 60 * 60 * 1000, sameSite: "none", secure: true })
             userData && res.status(200).json({
-                // accessToken: jwtTokens.accessToken,
-                // refreshToken: jwtTokens.refreshToken,
+                accessToken: jwtTokens.accessToken,
                 success: true,
                 message: "Successful login",
                 userId: userData.id,
@@ -47,62 +43,22 @@ authRouter.post('/local/login',
 
 authRouter.post('/local/signup', async (req: Request, res: Response) => {
     const { username, email, password, profileType } = req.body
-    // Logger.info(req.body)
     try {
         const emailAlreadyExists = await doesUserExists(email)
-        // Logger.info(emailAlreadyExists)
         if (emailAlreadyExists && emailAlreadyExists.email) {
             res.status(409).json({ success: false, message: "Email already in use" })
         } else if (!emailAlreadyExists) {
             const newUser = await createNewUser(email, password, profileType, username)
-            // console.log("newUser", newUser)
-            res.status(201).json({ success: true, payload: newUser })
+            //@ts-ignore
+            const jwtTokens = getAccessToken({ userId: newUser.id })
+            await storeRefreshJWT(newUser, jwtTokens.refreshToken)
+            res.cookie('jwt', jwtTokens.refreshToken, { httpOnly: true, maxAge: 24 * 60 * 60 * 1000, sameSite: "none" })
+            res.status(201).json({ success: true, payload: {...newUser, accessToken: jwtTokens.accessToken} })
         }
     } catch (err: any) {
         Logger.error({ success: false, message: err })
         res.status(400).send({ success: false, message: "Error occurred when signing up" })
     }
 })
-
-authRouter.delete('/token/deleteRefresh', (req: Request, res: Response) => {
-    const { token } = req.body
-    try {
-        if (token && refreshTokenList.includes(token)) {
-            refreshTokenList = refreshTokenList.filter(t => t !== token)
-            res.send({ success: true, message: "Refresh token cleared" })
-        } else {
-            res.status(404).send({ success: false, message: "Invalid token" })
-        }
-    } catch (err) {
-        Logger.error(err)
-        res.status(404).send({ success: false, message: "Error when trying to log out" })
-    }
-});
-
-
-authRouter.post('/token/refresh', (req: Request, res: Response) => {
-    const { token } = req.body
-    try {
-        if (!token) {
-            res.status(403).send({ success: false, message: "Missing token" })
-        }
-        if (!refreshTokenList.includes(token)) {
-            res.status(403).send({ success: false, message: "Invalid token" })
-        } else {
-            //fix user:any type
-            jwt.verify(token, SECRET_REFRESH_TOKEN, (err: any, user: any) => {
-                if (err) {
-                    res.status(403).send({ success: false, message: "Error when verifiying token" })
-                }
-                const newAccessToken = jwt.sign({ userId: user.id }, SECRET_ACCESS_TOKEN, { expiresIn: SECRET_ACCESS_TOKEN_EXPIRATION })
-                res.status(201).json({ success: true, accessToken: newAccessToken })
-            })
-        }
-    } catch (err) {
-        Logger.error(err)
-        res.status(400).send({ success: false, message: err })
-    }
-})
-
 
 export default authRouter;

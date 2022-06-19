@@ -1,11 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-//TODO
-//Migrate schema
-
-
-
 generator client {
   provider = "prisma-client-js"
   binaryTargets = ["native", "darwin"]
@@ -17,8 +12,6 @@ datasource db {
   shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
-//TODO
-//likesCount has to be an array of userId
 model Project {
   id  Int @id @default(autoincrement())
   title String
@@ -65,6 +58,7 @@ model User {
   profile UserProfile? 
   likedProjects Project[] @relation(name: "LikesRegistered" )
   appliedProjects Project[] @relation(name: "ApplicationsRegistered" )
+  refreshToken String? 
 }
 
 model UserProfile {
@@ -93,6 +87,7 @@ model Company {
   role SystemRole @default(USER)
   profileType ProfileType @default(COMPANY)
   profile CompanyProfile?
+  refreshToken String? 
 }
 
 model CompanyProfile {

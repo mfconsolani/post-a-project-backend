@@ -2,14 +2,6 @@ import Logger from '../middlewares/winstonLoggerMiddleware';
 import { Request } from 'express';
 import { areSkillsDifferent } from './areSkillsDifferent';
 
-//TODO
-//Add a validation to check if length of request object and length of info in DB is the same
-//Add a validation step to check if the corresponding field keys are equal or not
-//Implement the same logic for roles as in with skills to check if update is required and update it if
-//it comes to it
-//First if block in IsUpdateRequired function should be erased as the skills/roles array from the
-//request should never arrive empy
-
 export const isNewData = async (req: Request, callback: CallableFunction, skillsFromReq?: any, skillsFromDb?: any) => {
     const { body } = req
     const getCurrentRecords = await callback(body)
