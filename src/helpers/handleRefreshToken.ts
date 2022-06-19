@@ -56,12 +56,11 @@ export const handleRefreshToken = async (req: Request, res: Response) => {
                 })
             res.status(200).json({
                 accessToken: newAccessToken,
-                success: true
-                // message: "Successful login",
-                // userId: findUser.id,
-                // userEmail: findUser.email,
-                // profile: findUser.profileType,
-                // profileData: findUser.profile
+                success: true,
+                userId: findUser.id,
+                userEmail: findUser.email,
+                profile: findUser.profileType,
+                profileData: findUser.profile
             })
         })
 }
