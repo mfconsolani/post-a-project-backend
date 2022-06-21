@@ -10,12 +10,10 @@ import cors from 'cors'
 import cookieParser from 'cookie-parser'
 import jwtRouter from './routes/jwtRoutes';
 import {verifyToken} from './middlewares/authenticationJwt';
+import multer from 'multer'
+import { uploadFile, getFileStream } from './config/s3';
 
-
-//TODO
-//Add JWT tokens to DB so you can logout afterwards
-//add httpOnly and other configs to refreshtoken
-//Determine if jwtVerify middleware will be global or per controller
+const upload = multer({dest:'uploads/'})
 
 dotenv.config()
 
@@ -37,6 +35,18 @@ app.use('/api/users', usersRouter)
 app.use('/api/company', companyRouter)
 app.use('/api/skills', skillsRouter)
 app.use('/api/roles', rolesRouter)
+
+app.post('/images', upload.single('image'), async (req: Request, res: Response) => {
+    console.log(req.file)
+    // console.log(req.body)
+    const result = await uploadFile(req.file)
+    console.log(result)
+    const description = req.body.description
+    res.send("😁")
+
+    // req.file is the `avatar` file
+    // req.body will hold the text fields, if there were any
+  })
 
 app.get('/', verifyToken, (req: Request, res: Response) => {
     res.status(200).send("Hello World!")
