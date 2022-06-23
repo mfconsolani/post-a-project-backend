@@ -12,7 +12,10 @@ import jwtRouter from './routes/jwtRoutes';
 import {verifyToken} from './middlewares/authenticationJwt';
 import multer from 'multer'
 import { uploadFile, getFileStream } from './config/s3';
+import fs from 'fs';
+import util from 'util'
 
+const unlinkFile = util.promisify(fs.unlink)
 const upload = multer({dest:'uploads/'})
 
 dotenv.config()
@@ -36,13 +39,23 @@ app.use('/api/company', companyRouter)
 app.use('/api/skills', skillsRouter)
 app.use('/api/roles', rolesRouter)
 
+app.get('/images/:key', (req, res) => {
+    console.log(req.params)
+    const key = req.params.key
+    const readStream = getFileStream(key)
+  
+    readStream.pipe(res)
+  })
+
 app.post('/images', upload.single('image'), async (req: Request, res: Response) => {
     console.log(req.file)
     // console.log(req.body)
     const result = await uploadFile(req.file)
+    //@ts-ignore
+    await unlinkFile(req.file.path)
     console.log(result)
     const description = req.body.description
-    res.send("😁")
+    res.send({imagePath: `/images/${result.Key}`})
 
     // req.file is the `avatar` file
     // req.body will hold the text fields, if there were any
