@@ -21,7 +21,9 @@ export const doesUserExists = async (email: string) => {
                         country: true,
                         description: true,
                         skills: true,
-                        roles: true
+                        roles: true,
+                        avatar: true,
+                        resume: true
                     }
                 }
             }

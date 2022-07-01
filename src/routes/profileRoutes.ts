@@ -3,11 +3,99 @@ import { prisma } from '../db';
 import Logger from "../middlewares/winstonLoggerMiddleware";
 import { isNewData } from '../helpers/isNewData'
 import {verifyToken} from '../middlewares/authenticationJwt'
+import { uploadFile, getFileStream } from "../config/s3";
+// import { upload } from "../app";
+import multer from 'multer'
+import fs from 'fs';
+import util from 'util'
+
 //TODO
 //Add validator to check if final user is a company or a user
-//Add JWT verification
-
+const unlinkFile = util.promisify(fs.unlink)
+const upload = multer({dest:'uploads/'})
 const profileRouter = Router();
+
+profileRouter.post('/user/file/avatar', [verifyToken, upload.single('file')] , async (req: Request, res: Response) => {
+    const { email } = req.body
+    try {
+        const result = await uploadFile(req.file)
+        //@ts-ignore
+        await unlinkFile(req.file.path)
+        console.log(req.file)
+        const updateFile = await prisma.userProfile.update({
+            where: {userEmail: email},
+            data: {
+                avatar: result.Key 
+            }
+        })
+        res.send({filePath: `/${result.Key}`})
+    } catch (err){
+        console.log(err)
+        res.sendStatus(500)
+    }
+})
+
+
+profileRouter.post('/user/file/resume', [verifyToken, upload.single('file')] , async (req: Request, res: Response) => {
+    const { email } = req.body
+    console.log(req.body)
+    try {
+        const result = await uploadFile(req.file)
+        //@ts-ignore
+        await unlinkFile(req.file.path)
+        console.log(req.file)
+        const updateFile = await prisma.userProfile.update({
+            where: {userEmail: email},
+            data: {
+                resume: result.Key 
+            }
+        })
+        res.send({filePath: `/${result.Key}`})
+    } catch (err){
+        console.log(err)
+        res.sendStatus(500)
+    }
+})
+
+profileRouter.get('/user/file/avatar/:key',verifyToken, async (req: Request, res: Response) => {
+    try {
+    const getAvatarKey = await prisma.userProfile.findFirst({
+        where: {
+            avatar: req.params.key
+        },
+        select: {
+            avatar: true 
+        }
+    })
+        !getAvatarKey?.avatar 
+            ? res.sendStatus(404) //File not found 
+            : getFileStream(getAvatarKey?.avatar).pipe(res)   
+        
+    } catch (err){
+        console.log(err)
+        res.sendStatus(500)
+    }
+  })
+
+  profileRouter.get('/user/file/resume/:key',verifyToken, async (req: Request, res: Response) => {
+    try {
+    const getResumeKey = await prisma.userProfile.findFirst({
+        where: {
+            resume: req.params.key
+        },
+        select: {
+            resume: true 
+        }
+    })
+        !getResumeKey?.resume 
+            ? res.sendStatus(404) //File not found 
+            : getFileStream(getResumeKey?.resume).pipe(res)   
+        
+    } catch (err){
+        console.log(err)
+        res.sendStatus(500)
+    }
+  })
 
 //Post new profile data for company profiles
 profileRouter.post('/company/:id',verifyToken, async (req: Request, res: Response) => {
@@ -252,6 +340,11 @@ profileRouter.put('/user/:id',verifyToken, async (req: Request, res: Response) =
     }
 
 })
+
+// profileRouter.post('/user/file', (req: Request, res: Response) => {
+//     res.sendStatus(200)
+// })
+
 
 
 export default profileRouter;

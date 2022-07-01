@@ -16,13 +16,14 @@ import fs from 'fs';
 import util from 'util'
 
 const unlinkFile = util.promisify(fs.unlink)
-const upload = multer({dest:'uploads/'})
+export const upload = multer({dest:'uploads/'})
 
 dotenv.config()
 
 const app = express()
 app.use(credentials)
 app.use(cors(corsOptions))
+// app.use(cors())
 passport.use(LocalStrategy)
 app.use(express.json())
 app.use(cookieParser())
@@ -39,15 +40,16 @@ app.use('/api/company', companyRouter)
 app.use('/api/skills', skillsRouter)
 app.use('/api/roles', rolesRouter)
 
+
 app.get('/images/:key', (req, res) => {
-    console.log(req.params)
+    // console.log(req.params)
     const key = req.params.key
     const readStream = getFileStream(key)
-  
+    // console.log(readStream)
     readStream.pipe(res)
   })
 
-app.post('/images', upload.single('image'), async (req: Request, res: Response) => {
+app.post('/images', upload.single('file'), async (req: Request, res: Response) => {
     console.log(req.file)
     // console.log(req.body)
     const result = await uploadFile(req.file)
@@ -56,9 +58,6 @@ app.post('/images', upload.single('image'), async (req: Request, res: Response) 
     console.log(result)
     const description = req.body.description
     res.send({imagePath: `/images/${result.Key}`})
-
-    // req.file is the `avatar` file
-    // req.body will hold the text fields, if there were any
   })
 
 app.get('/', verifyToken, (req: Request, res: Response) => {

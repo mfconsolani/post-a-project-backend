@@ -24,7 +24,6 @@ export function uploadFile(file:any) {
     
     return s3.upload(uploadParams).promise()
   }
-  exports.uploadFile = uploadFile
   
   
   // downloads a file from s3
@@ -35,5 +34,7 @@ export function uploadFile(file:any) {
     }
   
     return s3.getObject(downloadParams).createReadStream()
+    
+    // return s3.getSignedUrl('getObject', downloadParams)
   }
 

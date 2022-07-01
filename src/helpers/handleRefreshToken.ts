@@ -21,7 +21,9 @@ export const handleRefreshToken = async (req: Request, res: Response) => {
                     country: true,
                     description: true,
                     skills: true,
-                    roles: true
+                    roles: true,
+                    avatar: true,
+                    resume: true
                 }
             }
         }
