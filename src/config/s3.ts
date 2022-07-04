@@ -34,7 +34,14 @@ export function uploadFile(file:any) {
     }
   
     return s3.getObject(downloadParams).createReadStream()
-    
-    // return s3.getSignedUrl('getObject', downloadParams)
   }
 
+  export function deleteFile(fileKey:any) {
+  
+    const deleteParams:any = {
+      Bucket: bucketName,
+      Key: fileKey
+    }
+    
+    return s3.deleteObject(deleteParams).promise()
+  }

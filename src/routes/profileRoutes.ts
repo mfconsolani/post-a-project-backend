@@ -2,8 +2,8 @@ import { Router, Request, Response } from "express";
 import { prisma } from '../db';
 import Logger from "../middlewares/winstonLoggerMiddleware";
 import { isNewData } from '../helpers/isNewData'
-import {verifyToken} from '../middlewares/authenticationJwt'
-import { uploadFile, getFileStream } from "../config/s3";
+import { verifyToken } from '../middlewares/authenticationJwt'
+import { uploadFile, getFileStream, deleteFile } from "../config/s3";
 // import { upload } from "../app";
 import multer from 'multer'
 import fs from 'fs';
@@ -12,10 +12,10 @@ import util from 'util'
 //TODO
 //Add validator to check if final user is a company or a user
 const unlinkFile = util.promisify(fs.unlink)
-const upload = multer({dest:'uploads/'})
+const upload = multer({ dest: 'uploads/' })
 const profileRouter = Router();
 
-profileRouter.post('/user/file/avatar', [verifyToken, upload.single('file')] , async (req: Request, res: Response) => {
+profileRouter.post('/user/file/avatar', [verifyToken, upload.single('file')], async (req: Request, res: Response) => {
     const { email } = req.body
     try {
         const result = await uploadFile(req.file)
@@ -23,20 +23,20 @@ profileRouter.post('/user/file/avatar', [verifyToken, upload.single('file')] , a
         await unlinkFile(req.file.path)
         console.log(req.file)
         const updateFile = await prisma.userProfile.update({
-            where: {userEmail: email},
+            where: { userEmail: email },
             data: {
-                avatar: result.Key 
+                avatar: result.Key
             }
         })
-        res.send({filePath: `/${result.Key}`})
-    } catch (err){
+        res.send({ filePath: `/${result.Key}` })
+    } catch (err) {
         console.log(err)
         res.sendStatus(500)
     }
 })
 
 
-profileRouter.post('/user/file/resume', [verifyToken, upload.single('file')] , async (req: Request, res: Response) => {
+profileRouter.post('/user/file/resume', [verifyToken, upload.single('file')], async (req: Request, res: Response) => {
     const { email } = req.body
     console.log(req.body)
     try {
@@ -45,60 +45,122 @@ profileRouter.post('/user/file/resume', [verifyToken, upload.single('file')] , a
         await unlinkFile(req.file.path)
         console.log(req.file)
         const updateFile = await prisma.userProfile.update({
-            where: {userEmail: email},
+            where: { userEmail: email },
             data: {
-                resume: result.Key 
+                resume: result.Key
             }
         })
-        res.send({filePath: `/${result.Key}`})
-    } catch (err){
+        res.send({ filePath: `/${result.Key}` })
+    } catch (err) {
         console.log(err)
         res.sendStatus(500)
     }
 })
 
-profileRouter.get('/user/file/avatar/:key',verifyToken, async (req: Request, res: Response) => {
+profileRouter.get('/user/file/avatar/:key', verifyToken, async (req: Request, res: Response) => {
     try {
-    const getAvatarKey = await prisma.userProfile.findFirst({
-        where: {
-            avatar: req.params.key
-        },
-        select: {
-            avatar: true 
-        }
-    })
-        !getAvatarKey?.avatar 
+        const getAvatarKey = await prisma.userProfile.findFirst({
+            where: {
+                avatar: req.params.key
+            },
+            select: {
+                avatar: true
+            }
+        })
+        !getAvatarKey?.avatar
             ? res.sendStatus(404) //File not found 
-            : getFileStream(getAvatarKey?.avatar).pipe(res)   
-        
-    } catch (err){
-        console.log(err)
-        res.sendStatus(500)
-    }
-  })
+            : getFileStream(getAvatarKey?.avatar).pipe(res)
 
-  profileRouter.get('/user/file/resume/:key',verifyToken, async (req: Request, res: Response) => {
-    try {
-    const getResumeKey = await prisma.userProfile.findFirst({
-        where: {
-            resume: req.params.key
-        },
-        select: {
-            resume: true 
-        }
-    })
-        !getResumeKey?.resume 
-            ? res.sendStatus(404) //File not found 
-            : getFileStream(getResumeKey?.resume).pipe(res)   
-        
-    } catch (err){
+    } catch (err) {
         console.log(err)
         res.sendStatus(500)
     }
-  })
+})
+
+profileRouter.get('/user/file/resume/:key', verifyToken, async (req: Request, res: Response) => {
+    try {
+        const getResumeKey = await prisma.userProfile.findFirst({
+            where: {
+                resume: req.params.key
+            },
+            select: {
+                resume: true
+            }
+        })
+        console.log(getResumeKey)
+        !getResumeKey?.resume
+            ? res.sendStatus(404) //File not found 
+            : getFileStream(getResumeKey?.resume).pipe(res)
+
+    } catch (err) {
+        console.log(err)
+        res.sendStatus(500)
+    }
+})
+
+profileRouter.delete('/user/file/resume/:key', verifyToken, async (req: Request, res: Response) => {
+    try {
+        const getResumeKey = await prisma.userProfile.findFirst({
+            where: {
+                resume: req.params.key
+            },
+            select: {
+                resume: true
+            }
+        })
+        if (!getResumeKey?.resume) {
+            res.sendStatus(404) //File not found 
+        } else {
+            await deleteFile(getResumeKey?.resume)
+            await prisma.userProfile.update({
+                where: {
+                    resume: req.params.key
+                },
+                data: {
+                    resume: ''
+                }
+            })
+            res.sendStatus(200)
+        }
+    } catch (err) {
+        console.log(err)
+        res.sendStatus(500)
+    }
+})
+
+profileRouter.delete('/user/file/avatar/:key', verifyToken, async (req: Request, res: Response) => {
+    try {
+        const getAvatarKey = await prisma.userProfile.findFirst({
+            where: {
+                avatar: req.params.key
+            },
+            select: {
+                avatar: true
+            }
+        })
+        if (!getAvatarKey?.avatar) {
+            res.sendStatus(404) //File not found 
+        } else {
+            await deleteFile(getAvatarKey?.avatar)
+            await prisma.userProfile.update({
+                where: {
+                    avatar: req.params.key
+                },
+                data: {
+                    avatar: ''
+                }
+            })
+            res.sendStatus(200)
+        }
+    } catch (err) {
+        console.log(err)
+        res.sendStatus(500)
+    }
+})
+
 
 //Post new profile data for company profiles
-profileRouter.post('/company/:id',verifyToken, async (req: Request, res: Response) => {
+profileRouter.post('/company/:id', verifyToken, async (req: Request, res: Response) => {
     let { id } = req.params
     const parsedId = parseInt(id)
     const { email, industry, phoneNumber, employees, description, country } = req.body
@@ -134,7 +196,7 @@ profileRouter.post('/company/:id',verifyToken, async (req: Request, res: Respons
             res.status(201).send({ success: true, message: createProfile })
         } else if (findCompany && findProfile) {
             const updateProfile = await prisma.companyProfile.update({
-                where: {companyEmail: email},
+                where: { companyEmail: email },
                 data: {
                     industry: industry,
                     phoneNumber: parseInt(phoneNumber),
@@ -153,7 +215,7 @@ profileRouter.post('/company/:id',verifyToken, async (req: Request, res: Respons
 
 //Put/replace profile data for company profiles
 //this will become probably useless given that this utility will be replaced by the post method
-profileRouter.put('/company/:id',verifyToken, async (req: Request, res: Response) => {
+profileRouter.put('/company/:id', verifyToken, async (req: Request, res: Response) => {
     const { body } = req
 
     try {
@@ -200,15 +262,15 @@ profileRouter.put('/company/:id',verifyToken, async (req: Request, res: Response
 })
 
 //post or updates profile data for user profiles
-profileRouter.post('/user/:id',verifyToken, async (req: Request, res: Response) => {
+profileRouter.post('/user/:id', verifyToken, async (req: Request, res: Response) => {
     let { id } = req.params
     const parsedId = parseInt(id)
     const { email, firstName, lastName, birthday, phone, city, description, country, skills, roles } = req.body
-    const mappedSkills = skills.map((skill:any) =>  {
-        return {"skill": skill.value}
+    const mappedSkills = skills.map((skill: any) => {
+        return { "skill": skill.value }
     })
-    const mappedRoles = roles.map((role:any) =>  {
-        return {"role": role.value}
+    const mappedRoles = roles.map((role: any) => {
+        return { "role": role.value }
     })
     try {
         const findUser = await prisma.user.findFirst({
@@ -227,8 +289,8 @@ profileRouter.post('/user/:id',verifyToken, async (req: Request, res: Response) 
             }, select: {
                 id: true,
                 userEmail: true,
-                skills: {select: {skill: true}},
-                roles: {select: {role: true}}
+                skills: { select: { skill: true } },
+                roles: { select: { role: true } }
             }
         })
         if (findUser && !findProfile) {
@@ -253,7 +315,7 @@ profileRouter.post('/user/:id',verifyToken, async (req: Request, res: Response) 
             res.status(201).send({ success: true, payload: createProfile, message: "Profile created" })
         } else if (findUser && findProfile) {
             const updateProfile = await prisma.userProfile.update({
-                where: {userEmail: email},
+                where: { userEmail: email },
                 data: {
                     firstName: firstName,
                     lastName: lastName,
@@ -282,7 +344,7 @@ profileRouter.post('/user/:id',verifyToken, async (req: Request, res: Response) 
 
 //Put/replace profile data for user profiles
 //this is probably useless now given that this method is covered by the previos one
-profileRouter.put('/user/:id',verifyToken, async (req: Request, res: Response) => {
+profileRouter.put('/user/:id', verifyToken, async (req: Request, res: Response) => {
     const { body } = req
 
     try {
