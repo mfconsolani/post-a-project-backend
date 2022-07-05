@@ -41,25 +41,6 @@ app.use('/api/skills', skillsRouter)
 app.use('/api/roles', rolesRouter)
 
 
-app.get('/images/:key', (req, res) => {
-    // console.log(req.params)
-    const key = req.params.key
-    const readStream = getFileStream(key)
-    // console.log(readStream)
-    readStream.pipe(res)
-  })
-
-app.post('/images', upload.single('file'), async (req: Request, res: Response) => {
-    console.log(req.file)
-    // console.log(req.body)
-    const result = await uploadFile(req.file)
-    //@ts-ignore
-    await unlinkFile(req.file.path)
-    console.log(result)
-    const description = req.body.description
-    res.send({imagePath: `/images/${result.Key}`})
-  })
-
 app.get('/', verifyToken, (req: Request, res: Response) => {
     res.status(200).send("Hello World!")
 })

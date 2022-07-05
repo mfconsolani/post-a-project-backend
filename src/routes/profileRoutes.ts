@@ -18,10 +18,9 @@ const profileRouter = Router();
 profileRouter.post('/user/file/avatar', [verifyToken, upload.single('file')], async (req: Request, res: Response) => {
     const { email } = req.body
     try {
-        const result = await uploadFile(req.file)
+        const result: any = await uploadFile(req.file)
         //@ts-ignore
         await unlinkFile(req.file.path)
-        console.log(req.file)
         const updateFile = await prisma.userProfile.update({
             where: { userEmail: email },
             data: {
@@ -38,12 +37,10 @@ profileRouter.post('/user/file/avatar', [verifyToken, upload.single('file')], as
 
 profileRouter.post('/user/file/resume', [verifyToken, upload.single('file')], async (req: Request, res: Response) => {
     const { email } = req.body
-    console.log(req.body)
     try {
-        const result = await uploadFile(req.file)
+        const result: any = await uploadFile(req.file)
         //@ts-ignore
         await unlinkFile(req.file.path)
-        console.log(req.file)
         const updateFile = await prisma.userProfile.update({
             where: { userEmail: email },
             data: {
@@ -69,6 +66,7 @@ profileRouter.get('/user/file/avatar/:key', verifyToken, async (req: Request, re
         })
         !getAvatarKey?.avatar
             ? res.sendStatus(404) //File not found 
+            //@ts-ignore
             : getFileStream(getAvatarKey?.avatar).pipe(res)
 
     } catch (err) {
@@ -87,10 +85,12 @@ profileRouter.get('/user/file/resume/:key', verifyToken, async (req: Request, re
                 resume: true
             }
         })
-        console.log(getResumeKey)
-        !getResumeKey?.resume
-            ? res.sendStatus(404) //File not found 
-            : getFileStream(getResumeKey?.resume).pipe(res)
+        if (!getResumeKey?.resume) {
+            res.sendStatus(404) //File not found
+        }
+        //@ts-ignore
+        const resume = getFileStream(getResumeKey?.resume, "resume")
+        res.status(200).send({success: true, payload: resume})
 
     } catch (err) {
         console.log(err)
