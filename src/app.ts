@@ -11,11 +11,7 @@ import cookieParser from 'cookie-parser'
 import jwtRouter from './routes/jwtRoutes';
 import {verifyToken} from './middlewares/authenticationJwt';
 import multer from 'multer'
-import { uploadFile, getFileStream } from './config/s3';
-import fs from 'fs';
-import util from 'util'
 
-const unlinkFile = util.promisify(fs.unlink)
 export const upload = multer({dest:'uploads/'})
 
 dotenv.config()
@@ -39,7 +35,6 @@ app.use('/api/users', usersRouter)
 app.use('/api/company', companyRouter)
 app.use('/api/skills', skillsRouter)
 app.use('/api/roles', rolesRouter)
-
 
 app.get('/', verifyToken, (req: Request, res: Response) => {
     res.status(200).send("Hello World!")

@@ -1,5 +1,6 @@
 import { Request, Response, Router } from "express";
 import { prisma, logPrismaError } from '../db';
+import { getAvatar } from "../config/s3";
 
 const usersRouter = Router()
 
@@ -59,7 +60,7 @@ usersRouter.get('/:id', async (req: Request, res: Response) => {
 //find all users with extended info
 usersRouter.get("/candidates/extended", async (req: Request, res: Response) => {
     try {
-        const getAllUsers = await prisma.user.findMany({
+        let getAllUsers = await prisma.user.findMany({
             select: {
                 id: true,
                 username: true,
@@ -73,6 +74,13 @@ usersRouter.get("/candidates/extended", async (req: Request, res: Response) => {
                     },
                 }
             }
+        })
+        getAllUsers = getAllUsers.map(elem => {
+            if (elem.profile?.avatar) {
+                elem.profile.avatar = getAvatar(elem?.profile?.avatar).toString()
+                return elem
+            }
+            return elem
         })
         res.status(200).send({ success: true, payload: getAllUsers })
     } catch (err) {

@@ -1,10 +1,8 @@
 import { Router, Request, Response } from "express";
 import { prisma } from '../db';
 import Logger from "../middlewares/winstonLoggerMiddleware";
-import { isNewData } from '../helpers/isNewData'
 import { verifyToken } from '../middlewares/authenticationJwt'
 import { uploadFile, getFileStream, deleteFile } from "../config/s3";
-// import { upload } from "../app";
 import multer from 'multer'
 import fs from 'fs';
 import util from 'util'
@@ -213,53 +211,6 @@ profileRouter.post('/company/:id', verifyToken, async (req: Request, res: Respon
     }
 })
 
-//Put/replace profile data for company profiles
-//this will become probably useless given that this utility will be replaced by the post method
-profileRouter.put('/company/:id', verifyToken, async (req: Request, res: Response) => {
-    const { body } = req
-
-    try {
-        const isUpdatedRequired = await isNewData(req, async (arg: any) => {
-            return await prisma.companyProfile.findUnique({
-                where: {
-                    companyEmail: arg.companyEmail
-                }, select: {
-                    companyEmail: true,
-                    industry: true,
-                    phoneNumber: true,
-                    employees: true,
-                    description: true,
-                    country: true
-                }
-            })
-        })
-
-        if (!isUpdatedRequired.isNewData) {
-            return res.status(200).send({ success: false, message: "Data is not new; no update required" })
-        } else {
-            const updateProfile = await prisma.companyProfile.update({
-                where: {
-                    companyEmail: body.companyEmail
-                },
-                data: {
-                    //For the moment companyEmail shouldn't be modified as it would mess up all the DB table relations
-                    //TODO
-                    //For the future, use id for relation scalar field instead of email.
-                    companyEmail: undefined,
-                    industry: body.industry || undefined,
-                    phoneNumber: body.phoneNumber || undefined,
-                    employees: body.employees || undefined,
-                    description: body.description || undefined,
-                    country: body.country || undefined
-                }
-            })
-            res.status(201).send({ success: true, updateProfile })
-        }
-    } catch (err) {
-        console.log(err)
-        res.status(404).send({ success: false, error: err, message: "Unexpected error when updating profile" })
-    }
-})
 
 //post or updates profile data for user profiles
 profileRouter.post('/user/:id', verifyToken, async (req: Request, res: Response) => {
@@ -342,70 +293,6 @@ profileRouter.post('/user/:id', verifyToken, async (req: Request, res: Response)
 
 })
 
-//Put/replace profile data for user profiles
-//this is probably useless now given that this method is covered by the previos one
-profileRouter.put('/user/:id', verifyToken, async (req: Request, res: Response) => {
-    const { body } = req
-
-    try {
-        const skillsInDb = await prisma.userProfile.findUnique({
-            where: {
-                userEmail: body.userEmail
-            }, include: {
-                skills: { select: { skill: true } }
-            }
-        })
-        const isUpdatedRequired = await isNewData(req, async (arg: any) => {
-            return await prisma.userProfile.findUnique({
-                where: {
-                    userEmail: arg.userEmail
-                }, select: {
-                    userEmail: true,
-                    firstName: true,
-                    lastName: true,
-                    birthday: true,
-                    phoneNumber: true,
-                    city: true,
-                    country: true,
-                    description: true,
-                    skills: true
-                }
-            })
-        }, req.body.skills, skillsInDb?.skills)
-
-        if (!isUpdatedRequired.isNewData) {
-            return res.status(200).send({ success: false, message: "Data is not new; no update required" })
-        } else {
-            const updateProfile = await prisma.userProfile.update({
-                where: {
-                    userEmail: body.userEmail
-                },
-                data: {
-                    userEmail: undefined,
-                    firstName: body.firstName || undefined,
-                    lastName: body.lastName || undefined,
-                    birthday: body.birthday || undefined,
-                    phoneNumber: body.phoneNumber || undefined,
-                    city: body.city || undefined,
-                    country: body.country || undefined,
-                    description: body.description || undefined,
-                    skills: { disconnect: skillsInDb?.skills, connect: body.skills },
-                }, include: {
-                    skills: { select: { skill: true } }
-                }
-            })
-            res.status(201).send({ success: true, updateProfile })
-        }
-    } catch (err) {
-        console.log(err)
-        res.status(404).send({ success: false, error: err, message: "Unexpected error when updating profile" })
-    }
-
-})
-
-// profileRouter.post('/user/file', (req: Request, res: Response) => {
-//     res.sendStatus(200)
-// })
 
 
 

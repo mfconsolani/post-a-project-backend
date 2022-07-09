@@ -16,6 +16,7 @@ const s3 = new S3({
 export function uploadFile(file: any) {
   if (file) {
     const fileStream = fs.createReadStream(file.path)
+    console.log(file)
     const uploadParams: any = {
       Bucket: bucketName,
       Body: fileStream,
@@ -25,7 +26,6 @@ export function uploadFile(file: any) {
   }
   return new Error("Payload not found")
 }
-
 
 // downloads a file from s3
 export function getFileStream(fileKey: any, fileType?: string) {
@@ -43,6 +43,18 @@ export function getFileStream(fileKey: any, fileType?: string) {
   return new Error("Payload not found")
 }
 
+export function getAvatar(fileKey: any, id?: number, email?: string) {
+  if (fileKey) {
+    const downloadParams: any = {
+      Key: fileKey,
+      Bucket: bucketName
+    }
+      return s3.getSignedUrl('getObject', downloadParams)
+  }
+  return new Error("Payload not found").toString()
+}
+
+// Delete a file in s3
 export function deleteFile(fileKey: any) {
   if (fileKey) {
     const deleteParams: any = {
