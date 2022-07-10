@@ -13,16 +13,16 @@ const s3 = new S3({
 })
 
 // uploads a file to s3
-export function uploadFile(file: any) {
+export async function uploadFile(file: any) {
   if (file) {
     const fileStream = fs.createReadStream(file.path)
-    console.log(file)
     const uploadParams: any = {
       Bucket: bucketName,
+      Key: file.originalname,
       Body: fileStream,
-      Key: file.filename
     }
-    return s3.upload(uploadParams).promise()
+    const uploadedFile = await s3.upload(uploadParams).promise()
+    return uploadedFile
   }
   return new Error("Payload not found")
 }
@@ -43,7 +43,8 @@ export function getFileStream(fileKey: any, fileType?: string) {
   return new Error("Payload not found")
 }
 
-export function getAvatar(fileKey: any, id?: number, email?: string) {
+// Get file signed url
+export function getFileUrl(fileKey: any) {
   if (fileKey) {
     const downloadParams: any = {
       Key: fileKey,

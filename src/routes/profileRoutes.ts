@@ -2,7 +2,7 @@ import { Router, Request, Response } from "express";
 import { prisma } from '../db';
 import Logger from "../middlewares/winstonLoggerMiddleware";
 import { verifyToken } from '../middlewares/authenticationJwt'
-import { uploadFile, getFileStream, deleteFile } from "../config/s3";
+import { uploadFile, getFileStream, deleteFile, getFileUrl } from "../config/s3";
 import multer from 'multer'
 import fs from 'fs';
 import util from 'util'
@@ -25,7 +25,7 @@ profileRouter.post('/user/file/avatar', [verifyToken, upload.single('file')], as
                 avatar: result.Key
             }
         })
-        res.send({ filePath: `/${result.Key}` })
+        res.send({ filePath: `${result.Key}` })
     } catch (err) {
         console.log(err)
         res.sendStatus(500)
@@ -65,7 +65,7 @@ profileRouter.get('/user/file/avatar/:key', verifyToken, async (req: Request, re
         !getAvatarKey?.avatar
             ? res.sendStatus(404) //File not found 
             //@ts-ignore
-            : getFileStream(getAvatarKey?.avatar).pipe(res)
+            : res.status(200).send({success: true, payload: getFileUrl(getAvatarKey?.avatar)})
 
     } catch (err) {
         console.log(err)

@@ -1,6 +1,6 @@
 import { Request, Response, Router } from "express";
 import { prisma, logPrismaError } from '../db';
-import { getAvatar } from "../config/s3";
+import { getFileUrl } from "../config/s3";
 
 const usersRouter = Router()
 
@@ -77,7 +77,7 @@ usersRouter.get("/candidates/extended", async (req: Request, res: Response) => {
         })
         getAllUsers = getAllUsers.map(elem => {
             if (elem.profile?.avatar) {
-                elem.profile.avatar = getAvatar(elem?.profile?.avatar).toString()
+                elem.profile.avatar = getFileUrl(elem?.profile?.avatar).toString()
                 return elem
             }
             return elem
