@@ -85,11 +85,11 @@ profileRouter.get('/user/file/resume/:key', verifyToken, async (req: Request, re
         })
         if (!getResumeKey?.resume) {
             res.sendStatus(404) //File not found
+        } else {
+            //@ts-ignore
+            const resume = getFileStream(getResumeKey?.resume, "resume")
+            res.status(200).send({success: true, payload: resume})
         }
-        //@ts-ignore
-        const resume = getFileStream(getResumeKey?.resume, "resume")
-        res.status(200).send({success: true, payload: resume})
-
     } catch (err) {
         console.log(err)
         res.sendStatus(500)
