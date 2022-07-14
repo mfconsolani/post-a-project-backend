@@ -58,13 +58,13 @@ model User {
   profile UserProfile? 
   likedProjects Project[] @relation(name: "LikesRegistered" )
   appliedProjects Project[] @relation(name: "ApplicationsRegistered" )
-  refreshToken String? 
+  refreshToken String? @unique
 }
 
 model UserProfile {
   id Int @id @default(autoincrement())
   user User @relation(fields: [userEmail], references: [email])
-  userEmail String
+  userEmail String @unique
   firstName String?
   lastName String?
   birthday String?
@@ -89,13 +89,13 @@ model Company {
   role SystemRole @default(USER)
   profileType ProfileType @default(COMPANY)
   profile CompanyProfile?
-  refreshToken String? 
+  refreshToken String? @unique
 }
 
 model CompanyProfile {
   id Int @id @default(autoincrement())
   company Company @relation(fields: [companyEmail], references: [email])
-  companyEmail String
+  companyEmail String @unique
   industry String?
   phoneNumber Int?
   employees String?

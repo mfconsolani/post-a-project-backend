@@ -29,9 +29,13 @@ export const doesUserExists = async (email: string) => {
                 }
             }
         })
-        // if(user?.profile?.avatar){
-        //     user.profile.avatar = getFileUrl(user?.profile?.avatar).toString()
-        // }
+        if (user?.profile?.avatar) {
+            user.profile.avatar = getFileUrl(user?.profile?.avatar).toString()
+        }
+
+        if (user?.profile?.resume) {
+            user.profile.resume = getFileUrl(user?.profile?.resume).toString()
+        }
 
 
         const company = await prisma.company.findUnique({
@@ -51,7 +55,7 @@ export const doesUserExists = async (email: string) => {
         })
         return (user || company) || false
     } catch (err: any) {
-        throw err
+        return err
     }
 }
 

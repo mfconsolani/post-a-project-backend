@@ -42,21 +42,25 @@ export const findUserByJWT = async (token:any) => {
     }
 } 
 
-export const deleteUsersToken = async (userEmail:string) => {
+export const deleteUsersToken = async (userEmail:string, profileType: string) => {
     try {
-        return await prisma.user.update({
-            where: {
-                email: userEmail
-            }, data: {
-                refreshToken: ''
-            }
-        }) || await prisma.company.update({
-            where: {
-                email: userEmail
-            }, data: {
-                refreshToken: ''
-            }
-        })
+        if (profileType === "USER"){
+            return await prisma.user.update({
+                where: {
+                    email: userEmail
+                }, data: {
+                    refreshToken: ''
+                }
+            })
+        } else if (profileType === "COMPANY") {
+            return await prisma.company.update({
+                where: {
+                    email: userEmail
+                }, data: {
+                    refreshToken: ''
+                }
+            })
+        }        
     } catch (err) {
         console.log(err)
         return err

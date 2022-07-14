@@ -25,7 +25,12 @@ profileRouter.post('/user/file/avatar', [verifyToken, upload.single('file')], as
                 avatar: result.Key
             }
         })
-        res.send({ filePath: `${result.Key}` })
+
+        !result.Key
+        ? res.sendStatus(404) //File not found 
+        //@ts-ignore
+        : res.status(200).send({success: true, payload: getFileUrl(result.Key)})
+
     } catch (err) {
         console.log(err)
         res.sendStatus(500)
@@ -45,7 +50,11 @@ profileRouter.post('/user/file/resume', [verifyToken, upload.single('file')], as
                 resume: result.Key
             }
         })
-        res.send({ filePath: `/${result.Key}` })
+
+        !result.Key
+        ? res.sendStatus(404) //File not found 
+        //@ts-ignore
+        : res.status(200).send({success: true, payload: getFileUrl(result.Key)})
     } catch (err) {
         console.log(err)
         res.sendStatus(500)
