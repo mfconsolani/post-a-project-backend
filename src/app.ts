@@ -10,18 +10,16 @@ import cors from 'cors'
 import cookieParser from 'cookie-parser'
 import jwtRouter from './routes/jwtRoutes';
 import {verifyToken} from './middlewares/authenticationJwt';
+import multer from 'multer'
 
-
-//TODO
-//Add JWT tokens to DB so you can logout afterwards
-//add httpOnly and other configs to refreshtoken
-//Determine if jwtVerify middleware will be global or per controller
+export const upload = multer({dest:'uploads/'})
 
 dotenv.config()
 
 const app = express()
 app.use(credentials)
 app.use(cors(corsOptions))
+// app.use(cors())
 passport.use(LocalStrategy)
 app.use(express.json())
 app.use(cookieParser())

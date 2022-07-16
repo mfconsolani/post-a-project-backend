@@ -1,4 +1,5 @@
 import bcrypt from 'bcrypt'
+import { getFileUrl } from '../config/s3';
 import { prisma } from '../db';
 import Logger from '../middlewares/winstonLoggerMiddleware';
 
@@ -7,7 +8,7 @@ import Logger from '../middlewares/winstonLoggerMiddleware';
 //CreateNewUser function does not adapt to the new user schema. Fix
 export const doesUserExists = async (email: string) => {
     try {
-        const user = await prisma.user.findUnique({
+        let user = await prisma.user.findUnique({
             where: {
                 email: email
             }, include: {
@@ -21,11 +22,21 @@ export const doesUserExists = async (email: string) => {
                         country: true,
                         description: true,
                         skills: true,
-                        roles: true
+                        roles: true,
+                        avatar: true,
+                        resume: true
                     }
                 }
             }
         })
+        if (user?.profile?.avatar) {
+            user.profile.avatar = getFileUrl(user?.profile?.avatar).toString()
+        }
+
+        if (user?.profile?.resume) {
+            user.profile.resume = getFileUrl(user?.profile?.resume).toString()
+        }
+
 
         const company = await prisma.company.findUnique({
             where: {
@@ -44,7 +55,7 @@ export const doesUserExists = async (email: string) => {
         })
         return (user || company) || false
     } catch (err: any) {
-        throw err
+        return err
     }
 }
 
