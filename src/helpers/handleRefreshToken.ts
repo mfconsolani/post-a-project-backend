@@ -39,7 +39,6 @@ export const handleRefreshToken = async (req: Request, res: Response) => {
         if(findUserProfile?.profile?.resume){
             findUserProfile.profile.resume = getFileUrl(findUserProfile?.profile?.resume).toString()
         }
-    
         let findCompanyProfile = await prisma.company.findFirst({
             where: {
                 refreshToken: token

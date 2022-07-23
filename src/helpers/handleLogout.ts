@@ -12,7 +12,7 @@ export const handleLogout = async (req: Request, res: Response) => {
         return res.sendStatus(204) //No content
     } else {
         //@ts-ignore
-         await deleteUsersToken(findUser.email, findUser.profileType)
+         await deleteUsersToken(findUser.id, findUser.profileType)
          res.clearCookie('jwt', { httpOnly: true, maxAge: 24 * 60 * 60 * 1000, sameSite: "none", secure: true })
          return res.sendStatus(204)
     }

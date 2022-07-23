@@ -56,7 +56,9 @@ projectRouter.get('/:id', async (req: Request, res: Response) => {
 
 //Publish a brand new project
 projectRouter.post('/',verifyToken, async (req: Request, res: Response) => {
-    const { title, company, body, roles, skills, duration, expiresBy, likesCount, location, owner } = req.body
+    const { id, title, company, body, roles, skills, duration, expiresBy, likesCount, location, owner } = req.body
+    // Extract ID from req.body to afterwards connect the ID to the projectOwner
+
     const mappedSkills = skills.map((skill: any) => {
         return { "skill": skill.value }
     })
@@ -76,7 +78,9 @@ projectRouter.post('/',verifyToken, async (req: Request, res: Response) => {
                 likesCount: 0,
                 // likesRegistered: undefined,
                 location,
-                projectOwner: { connect: { companyEmail: owner } }
+                //@ts-ignore
+                projectOwner: { connect: { companyId: id } }// ----> POSSIBLE DB ERROR HERE AFTER CHANGES IN DB ID AS UUID IS A STRING
+                // projectOwner: { connect: { companyEmail: owner } }
             }
         })
         res.status(201).send({ success: true, payload: postProject, message: "Project created successfully" })
@@ -88,6 +92,7 @@ projectRouter.post('/',verifyToken, async (req: Request, res: Response) => {
 
 
 //TODO
+//THIS HAS TO BE RE-THOUGHT. ISN'T THERE A BETTER WAY TO DO THIS?
 // Implement the same logic for roles as in with skills to check if update is required and update it if
 // it comes to it
 // This endpoint should only be available for COMPANY profile types and checking id in request previously

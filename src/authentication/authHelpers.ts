@@ -76,7 +76,7 @@ export const storeRefreshJWT = async (userData: any, refreshToken: any) => {
         if (userData && userData.profileType === "COMPANY") {
             return await prisma.company.update({
                 where: {
-                    email: userData.email
+                    id: userData.id
                 }, data: {
                     refreshToken: refreshToken
                 }
@@ -84,7 +84,7 @@ export const storeRefreshJWT = async (userData: any, refreshToken: any) => {
         } else if (userData && userData.profileType === "USER") {
             return await prisma.user.update({
                 where: {
-                    email: userData.email
+                    id: userData.id
                 }, data: {
                     refreshToken: refreshToken
                 }

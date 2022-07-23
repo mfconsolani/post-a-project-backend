@@ -2,106 +2,122 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
   binaryTargets = ["native", "darwin"]
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider          = "postgresql"
+  url               = env("DATABASE_URL")
   shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
 model Project {
-  id  Int @id @default(autoincrement())
-  title String
-  company String
-  body String
-  role Roles[]
-  skill Skills[]
-  duration String
-  createdAt DateTime @default(now())
-  expiresBy DateTime
-  likesCount Int 
-  likesRegistered User[] @relation(name: "LikesRegistered" )
-  applicationsRegistered User[] @relation(name: "ApplicationsRegistered" ) 
-  location  String
-  projectOwner CompanyProfile @relation(fields: [owner], references: [companyEmail])
-  owner String
+  id                     Int            @id @default(autoincrement())
+  title                  String
+  company                String
+  body                   String
+  role                   Roles[]
+  skill                  Skills[]
+  duration               String
+  createdAt              DateTime       @default(now())
+  expiresBy              DateTime
+  likesCount             Int
+  likesRegistered        User[]         @relation(name: "LikesRegistered")
+  applicationsRegistered User[]         @relation(name: "ApplicationsRegistered")
+  location               String
+  // projectOwner           CompanyProfile @relation(fields: [owner], references: [companyEmail])
+  projectOwner           CompanyProfile @relation(fields: [owner], references: [companyId])
+  owner                  String
 }
 
 model Roles {
-  id  Int @id @default(autoincrement())
-  role String @unique
-  roleInPost Project[]
+  id          Int           @id @default(autoincrement())
+  role        String        @unique
+  roleInPost  Project[]
   rolesInUser UserProfile[]
-
 }
 
 model Skills {
-  id  Int @id @default(autoincrement())
-  skill String @unique
-  skillInPost Project[] 
+  id          Int           @id @default(autoincrement())
+  skill       String        @unique
+  skillInPost Project[]
   skillInUser UserProfile[]
 }
 
 model User {
-  id Int @id @default(autoincrement())
-  username String? @unique
-  email String @unique
-  password String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  gdprPolicy Boolean @default(false)
-  role SystemRole @default(USER)
-  profileType ProfileType @default(USER)
-  profile UserProfile? 
-  likedProjects Project[] @relation(name: "LikesRegistered" )
-  appliedProjects Project[] @relation(name: "ApplicationsRegistered" )
-  refreshToken String? @unique
+  // id              Int          @id @default(autoincrement())
+  id              String       @id @default(uuid())
+  username        String?      @unique
+  email           String       @unique
+  password        String
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  gdprPolicy      Boolean      @default(false)
+  role            SystemRole   @default(USER)
+  profileType     ProfileType  @default(USER)
+  profile         UserProfile?
+  likedProjects   Project[]    @relation(name: "LikesRegistered")
+  appliedProjects Project[]    @relation(name: "ApplicationsRegistered")
+  refreshToken    String?      @unique
 }
 
 model UserProfile {
-  id Int @id @default(autoincrement())
-  user User @relation(fields: [userEmail], references: [email])
-  userEmail String @unique
-  firstName String?
-  lastName String?
-  birthday String?
+  id          Int      @id @default(autoincrement())
+  user        User?     @relation(fields: [userId], references: [id])
+  userId      String?   @unique
+  // user        User     @relation(fields: [userEmail], references: [email])
+  // userEmail   String   @unique
+  firstName   String?
+  lastName    String?
+  birthday    String?
   phoneNumber Int?
-  city String?
-  country String?
+  city        String?
+  country     String?
   description String?
-  skills Skills[]
-  roles Roles[]
-  avatar String? @unique
-  resume String? @unique
+  skills      Skills[]
+  roles       Roles[]
+  avatar      String?  @unique
+  resume      String?  @unique
 }
 
 model Company {
-  id Int @id @default(autoincrement())
-  name String? @unique
-  email String @unique
-  password String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  gdprPolicy Boolean @default(false)
-  role SystemRole @default(USER)
-  profileType ProfileType @default(COMPANY)
-  profile CompanyProfile?
-  refreshToken String? @unique
+  // id           Int             @id @default(autoincrement())
+  id           String          @id @default(uuid())
+  name         String?         @unique
+  email        String          @unique
+  password     String
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  gdprPolicy   Boolean         @default(false)
+  role         SystemRole      @default(USER)
+  profileType  ProfileType     @default(COMPANY)
+  profile      CompanyProfile?
+  refreshToken String?         @unique
 }
 
 model CompanyProfile {
-  id Int @id @default(autoincrement())
-  company Company @relation(fields: [companyEmail], references: [email])
-  companyEmail String @unique
-  industry String?
+  id          Int       @id @default(autoincrement())
+  // company      Company   @relation(fields: [companyEmail], references: [email])
+  // companyEmail String    @unique
+  company     Company?   @relation(fields: [companyId], references: [id])
+  companyId   String?    @unique
+  industry    String?
   phoneNumber Int?
-  employees String?
+  employees   String?
   description String?
-  country String?
-  projects Project[]
+  country     String?
+  projects    Project[]
+}
+
+model Messages {
+  id         Int      @id @default(autoincrement())
+  uuid       String   @default(uuid())
+  senderId   String
+  receiverId String
+  message    String
+  date       DateTime @updatedAt
+  readStatus Boolean
 }
 
 enum SystemRole {

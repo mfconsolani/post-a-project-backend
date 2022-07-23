@@ -2,11 +2,7 @@ import { Router, Request, Response } from "express";
 import passport from "passport";
 import { createNewUser, doesUserExists, storeRefreshJWT } from "../authentication/authHelpers";
 import Logger from "../middlewares/winstonLoggerMiddleware";
-import { getAccessToken, SECRET_ACCESS_TOKEN, SECRET_ACCESS_TOKEN_EXPIRATION, SECRET_REFRESH_TOKEN } from "../middlewares/authenticationJwt";
-import * as jwt from 'jsonwebtoken'
-import { prisma } from '../db';
-import { ProfileType } from ".prisma/client";
-import { handleRefreshToken } from "../helpers/handleRefreshToken";
+import { getAccessToken } from "../middlewares/authenticationJwt";
 
 //TODO
 //Add password regex validation
@@ -52,7 +48,7 @@ authRouter.post('/local/signup', async (req: Request, res: Response) => {
             //@ts-ignore
             const jwtTokens = getAccessToken({ userId: newUser.id })
             await storeRefreshJWT(newUser, jwtTokens.refreshToken)
-            res.cookie('jwt', jwtTokens.refreshToken, { httpOnly: true, maxAge: 24 * 60 * 60 * 1000, sameSite: "none" })
+            res.cookie('jwt', jwtTokens.refreshToken, { httpOnly: true, maxAge: 24 * 60 * 60 * 1000, sameSite: "none", secure: true })
             res.status(201).json({ success: true, payload: {...newUser, accessToken: jwtTokens.accessToken} })
         }
     } catch (err: any) {

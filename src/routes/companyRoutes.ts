@@ -35,7 +35,7 @@ companyRouter.get('/:id', verifyToken, async (req: Request, res: Response) => {
     try {
         const findOneCompany = await prisma.company.findUnique({
             where: {
-                id: parseInt(req.params.id)
+                id: req.params.id
             },
             select: {
                 id: true,

@@ -27,7 +27,6 @@ export const LocalStrategy = new Local.Strategy(
                 return done(null, user.id)
             } catch (err: any) {
                 Logger.error(err)
-                console.log(err)
                 return err
             }
         })
