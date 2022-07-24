@@ -7,8 +7,6 @@ import { doesUserExists, isValidPassword } from "./authHelpers";
 //add email to the return object
 //add ProfileType to the return object
 
-
-
 export const LocalStrategy = new Local.Strategy(
         { 
         usernameField:'email', 

@@ -20,8 +20,7 @@ profileRouter.post('/user/file/avatar', [verifyToken, upload.single('file')], as
         //@ts-ignore
         await unlinkFile(req.file.path)
         const updateFile = await prisma.userProfile.update({
-            where: { id: id },
-            // where: { userEmail: email },
+            where: { userId: id },
             data: {
                 avatar: result.Key
             }
@@ -46,8 +45,7 @@ profileRouter.post('/user/file/resume', [verifyToken, upload.single('file')], as
         //@ts-ignore
         await unlinkFile(req.file.path)
         const updateFile = await prisma.userProfile.update({
-            where: { id: id },
-            // where: { userEmail: email },
+            where: { userId: id },
             data: {
                 resume: result.Key
             }
@@ -177,9 +175,7 @@ profileRouter.post('/company/:id', verifyToken, async (req: Request, res: Respon
     try {
         const findCompany = await prisma.company.findUnique({
             where: {
-                //@ts-ignore
-                id: id // ----> POSSIBLE DB ERROR HERE AFTER CHANGES IN DB ID AS UUID IS A STRING
-                // email: email
+                id: id
             }, select: {
                 id: true,
                 email: true,
@@ -188,18 +184,14 @@ profileRouter.post('/company/:id', verifyToken, async (req: Request, res: Respon
         })
         const findProfile = await prisma.companyProfile.findUnique({
             where: {
-                //@ts-ignore
-                companyId: id // ----> POSSIBLE DB ERROR HERE AFTER CHANGES IN DB ID AS UUID IS A STRING
-                // companyEmail: email
+                companyId: id
             }
         })
 
         if (findCompany && !findProfile) {
             const createProfile = await prisma.companyProfile.create({
                 data: {
-                    //@ts-ignore
-                    company: { connect: { id } },// ----> POSSIBLE DB ERROR HERE AFTER CHANGES IN DB ID AS UUID IS A STRING
-                    // company: { connect: { email } },
+                    company: { connect: { id } },
                     industry: industry,
                     phoneNumber: parseInt(phoneNumber),
                     employees: employees,
@@ -211,9 +203,7 @@ profileRouter.post('/company/:id', verifyToken, async (req: Request, res: Respon
             res.status(201).send({ success: true, message: createProfile })
         } else if (findCompany && findProfile) {
             const updateProfile = await prisma.companyProfile.update({
-                //@ts-ignore
-                where: { companyId: id },// ----> POSSIBLE DB ERROR HERE AFTER CHANGES IN DB ID AS UUID IS A STRING
-                // where: { companyEmail: email },
+                where: { companyId: id },
                 data: {
                     industry: industry,
                     phoneNumber: parseInt(phoneNumber),
@@ -245,19 +235,13 @@ profileRouter.post('/user/:id', verifyToken, async (req: Request, res: Response)
     try {
         const findUser = await prisma.user.findUnique({
             where: {
-                //@ts-ignore
-                id: id, // ----> POSSIBLE DB ERROR HERE AFTER CHANGES IN DB ID AS UUID IS A STRING
-                // const findUser = await prisma.user.findFirst({
-                //     where: {
-                //         id: parsedId,
-                //         email: email
+                id: id,
             }, select: {
                 id: true,
                 email: true,
                 profileType: true
             }
         })
-        //PENDING TO FIX TO AVOID TYPE ERROS IN LINES 309 AND 310
         // const findProfile = await prisma.userProfile.findUnique({
         const findProfile = await prisma.userProfile.findFirst({
             where: {
@@ -272,9 +256,7 @@ profileRouter.post('/user/:id', verifyToken, async (req: Request, res: Response)
         if (findUser && !findProfile) {
             const createProfile = await prisma.userProfile.create({
                 data: {
-                    //@ts-ignore
-                    user: { connect: { id: id } }, // ----> POSSIBLE DB ERROR HERE AFTER CHANGES IN DB ID AS UUID IS A STRING
-                    // user: { connect: { email: email } },
+                    user: { connect: { id: id } },
                     firstName: firstName,
                     lastName: lastName,
                     birthday: birthday,
@@ -293,9 +275,7 @@ profileRouter.post('/user/:id', verifyToken, async (req: Request, res: Response)
             res.status(201).send({ success: true, payload: createProfile, message: "Profile created" })
         } else if (findUser && findProfile) {
             const updateProfile = await prisma.userProfile.update({
-                //@ts-ignore
-                where: { userId: id }, // ----> POSSIBLE DB ERROR HERE AFTER CHANGES IN DB ID AS UUID IS A STRING
-                // where: { userEmail: email },
+                where: { userId: id }, 
                 data: {
                     firstName: firstName,
                     lastName: lastName,

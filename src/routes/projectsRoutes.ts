@@ -57,7 +57,6 @@ projectRouter.get('/:id', async (req: Request, res: Response) => {
 //Publish a brand new project
 projectRouter.post('/',verifyToken, async (req: Request, res: Response) => {
     const { id, title, company, body, roles, skills, duration, expiresBy, likesCount, location, owner } = req.body
-    // Extract ID from req.body to afterwards connect the ID to the projectOwner
 
     const mappedSkills = skills.map((skill: any) => {
         return { "skill": skill.value }
@@ -78,9 +77,7 @@ projectRouter.post('/',verifyToken, async (req: Request, res: Response) => {
                 likesCount: 0,
                 // likesRegistered: undefined,
                 location,
-                //@ts-ignore
-                projectOwner: { connect: { companyId: id } }// ----> POSSIBLE DB ERROR HERE AFTER CHANGES IN DB ID AS UUID IS A STRING
-                // projectOwner: { connect: { companyEmail: owner } }
+                projectOwner: { connect: { companyId: id } }
             }
         })
         res.status(201).send({ success: true, payload: postProject, message: "Project created successfully" })

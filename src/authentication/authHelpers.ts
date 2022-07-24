@@ -1,11 +1,7 @@
 import bcrypt from 'bcrypt'
 import { getFileUrl } from '../config/s3';
 import { prisma } from '../db';
-import Logger from '../middlewares/winstonLoggerMiddleware';
 
-
-//TODO
-//CreateNewUser function does not adapt to the new user schema. Fix
 export const doesUserExists = async (email: string) => {
     try {
         let user = await prisma.user.findUnique({

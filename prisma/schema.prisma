@@ -26,7 +26,6 @@ model Project {
   likesRegistered        User[]         @relation(name: "LikesRegistered")
   applicationsRegistered User[]         @relation(name: "ApplicationsRegistered")
   location               String
-  // projectOwner           CompanyProfile @relation(fields: [owner], references: [companyEmail])
   projectOwner           CompanyProfile @relation(fields: [owner], references: [companyId])
   owner                  String
 }
@@ -46,7 +45,6 @@ model Skills {
 }
 
 model User {
-  // id              Int          @id @default(autoincrement())
   id              String       @id @default(uuid())
   username        String?      @unique
   email           String       @unique
@@ -59,15 +57,13 @@ model User {
   profile         UserProfile?
   likedProjects   Project[]    @relation(name: "LikesRegistered")
   appliedProjects Project[]    @relation(name: "ApplicationsRegistered")
-  refreshToken    String?      @unique
+  refreshToken    String?      
 }
 
 model UserProfile {
   id          Int      @id @default(autoincrement())
   user        User?     @relation(fields: [userId], references: [id])
   userId      String?   @unique
-  // user        User     @relation(fields: [userEmail], references: [email])
-  // userEmail   String   @unique
   firstName   String?
   lastName    String?
   birthday    String?
@@ -82,7 +78,6 @@ model UserProfile {
 }
 
 model Company {
-  // id           Int             @id @default(autoincrement())
   id           String          @id @default(uuid())
   name         String?         @unique
   email        String          @unique
@@ -93,13 +88,11 @@ model Company {
   role         SystemRole      @default(USER)
   profileType  ProfileType     @default(COMPANY)
   profile      CompanyProfile?
-  refreshToken String?         @unique
+  refreshToken String?         
 }
 
 model CompanyProfile {
   id          Int       @id @default(autoincrement())
-  // company      Company   @relation(fields: [companyEmail], references: [email])
-  // companyEmail String    @unique
   company     Company?   @relation(fields: [companyId], references: [id])
   companyId   String?    @unique
   industry    String?

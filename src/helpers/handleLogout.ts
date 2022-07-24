@@ -2,7 +2,6 @@ import { Request, Response } from 'express';
 import { findUserByJWT, deleteUsersToken } from './fetchUserByJWT';
 
 export const handleLogout = async (req: Request, res: Response) => {
-    //on client also delete the access token
     const cookies = req.cookies
     if (!cookies?.jwt) return res.sendStatus(204) //No content
     const token = cookies.jwt
